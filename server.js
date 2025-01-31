@@ -143,6 +143,11 @@ app.get('/admin', (req, res) => {
     `);
 });
 
+// Ruta raíz (GET /)
+app.get('/', (req, res) => {
+    res.send('Bienvenido a NatMarket. Usa las rutas correctas para interactuar con el servidor.');
+});
+
 app.listen(port, () => {
     console.log(`Servidor corriendo en http://localhost:${port}`);
 });
