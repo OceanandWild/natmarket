@@ -96,7 +96,7 @@ app.get('/verify/:token', async (req, res) => {
 });
 
 // 📌 **Ruta de Inicio de Sesión**
-app.post('/login', async (req, res) => {
+app.get('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = users.find(u => u.email === email);
 
