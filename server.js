@@ -113,6 +113,11 @@ app.post('/login', async (req, res) => {
     res.json({ success: true, message: 'Inicio de sesión exitoso' });
 });
 
+app.get('/', (req, res) => {
+    res.send('Bienvenido a NatMarket. Usa las rutas correctas para interactuar con el servidor.');
+});
+
+
 // 📌 **Servidor Escuchando**
 app.listen(port, () => {
     console.log(`Servidor corriendo en http://localhost:${port}`);
