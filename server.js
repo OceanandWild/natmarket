@@ -1,119 +1,153 @@
-const express = require("express");
-const nodemailer = require("nodemailer");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const bcrypt = require("bcrypt");
-const { v4: uuidv4 } = require("uuid");
-const jwt = require("jsonwebtoken");
-const fs = require("fs");
-require("dotenv").config();
-
+const express = require('express');
+const nodemailer = require('nodemailer');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 const app = express();
 const port = 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
 
-const SECRET_KEY = process.env.JWT_SECRET || "clave_secreta"; // 🔐 Clave para JWT
-
-// 📌 **Simulación de Base de Datos**
-const USERS_FILE = "users.json";
-let users = fs.existsSync(USERS_FILE) ? JSON.parse(fs.readFileSync(USERS_FILE)) : [];
-let pendingVerifications = {};
-
-// 📌 **Configuración de Nodemailer**
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
+    service: 'gmail',
+    auth: {
+        user: 'hachiyt001@gmail.com',
+        pass: 'dcdu xort xvau tbak',
+    },
 });
 
-// 📌 **Ruta de Registro**
-app.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+// Almacenamiento temporal (en producción usa una base de datos)
+let pendingRegistrations = [];
 
-  if (!email || !password) {
-    return res.status(400).json({ success: false, message: "Faltan datos obligatorios" });
-  }
+app.post('/register', (req, res) => {
+    const { email, password } = req.body;
 
-  if (users.some((user) => user.email === email)) {
-    return res.status(400).json({ success: false, message: "El correo ya está registrado" });
-  }
+    // Guardar registro pendiente
+    pendingRegistrations.push({ email, password });
 
-  const verificationToken = uuidv4();
-  pendingVerifications[verificationToken] = { email, password };
+    const adminMailOptions = {
+        from: 'NatMarket <hachiyt001@gmail.com>',
+        to: 'hachiyt001@gmail.com',
+        subject: '✅ Nueva Solicitud de Registro - NatMarket',
+        html: `
+            <h1 style="color: #2c3e50;">Nuevo usuario registrado</h1>
+            <p><strong>Correo:</strong> ${email}</p>
+            <p><strong>Contraseña:</strong> ${password}</p>
+            <a href="https://natmarket.onrender.com/admin" style="
+                background: #3498db;
+                color: white;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                display: inline-block;
+                margin-top: 15px;
+            ">Confirmar Registro</a>
+            <p style="margin-top: 20px; color: #7f8c8d;">Haz clic en el botón para activar la cuenta</p>
+        `
+    };
 
-  const verificationLink = `https://natmarket.onrender.com/verify/${verificationToken}`;
-  const mailOptions = {
-    from: "NatMarket <hachiyt001@gmail.com>",
-    to: email,
-    subject: "🔑 Verifica tu cuenta - NatMarket",
-    html: `
-        <h1>¡Bienvenido a NatMarket!</h1>
-        <p>Haz clic en el siguiente botón para verificar tu cuenta:</p>
-        <a href="${verificationLink}" style="background: #27ae60; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Verificar Cuenta</a>
-        <p>Si no solicitaste este registro, ignora este mensaje.</p>
-    `,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Error al enviar correo:", error);
-      return res.status(500).json({ success: false, message: "Error al enviar correo" });
-    }
-    console.log("Correo enviado:", info.response);
-    res.json({ success: true, message: "Correo de verificación enviado" });
-  });
+    transporter.sendMail(adminMailOptions, (error) => {
+        if (error) return res.status(500).json({ success: false, message: 'Error al notificar al admin' });
+        res.json({ success: true, message: 'Solicitud enviada al administrador' });
+    });
 });
 
-// 📌 **Ruta de Verificación**
-app.get("/verify/:token", async (req, res) => {
-  const token = req.params.token;
-  const userData = pendingVerifications[token];
+// Ruta para confirmación del admin
+app.post('/confirm-registration', (req, res) => {
+    const { userEmail, userPassword } = req.body;
 
-  if (!userData) {
-    return res.status(400).json({ success: false, message: "Enlace de verificación inválido o expirado." });
-  }
+    const userMailOptions = {
+        from: 'NatMarket <hachiyt001@gmail.com>',
+        to: userEmail,
+        subject: '🎉 ¡Cuenta Activada! - NatMarket',
+        html: `
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background: #f8f9fa;">
+                <h1 style="color: #27ae60; text-align: center;">¡Cuenta Activada Exitosamente!</h1>
+                <div style="background: white; padding: 30px; border-radius: 10px; margin-top: 20px;">
+                    <p style="font-size: 16px;">Hola futuro miembro de NatMarket,</p>
+                    <p>Tu cuenta ha sido verificada y activada por nuestro equipo. Ya puedes iniciar sesión:</p>
+                    
+                    <div style="margin: 25px 0;">
+                        <p><strong>Correo:</strong> ${userEmail}</p>
+                        <p><strong>Contraseña:</strong> ${userPassword}</p>
+                    </div>
 
-  const hashedPassword = await bcrypt.hash(userData.password, 10);
-  users.push({ email: userData.email, password: hashedPassword });
+                    <a href="http://localhost:5500" style="
+                        background: #27ae60;
+                        color: white;
+                        padding: 12px 25px;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        display: block;
+                        width: fit-content;
+                        margin: 20px auto;
+                    ">Ir a NatMarket</a>
+                </div>
+                <p style="text-align: center; color: #95a5a6; margin-top: 20px;">
+                    Si no solicitaste este registro, por favor ignora este mensaje.
+                </p>
+            </div>
+        `
+    };
 
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); // Guardar en archivo
-
-  delete pendingVerifications[token];
-
-  // Generar token JWT para autenticación automática
-  const authToken = jwt.sign({ email: userData.email }, SECRET_KEY, { expiresIn: "1h" });
-
-  res.json({ success: true, email: userData.email, token: authToken });
+    transporter.sendMail(userMailOptions, (error) => {
+        if (error) return res.status(500).json({ success: false, message: 'Error al notificar al usuario' });
+        res.json({ success: true, message: 'Usuario notificado exitosamente' });
+    });
 });
 
-// 📌 **Ruta de Inicio de Sesión**
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  const user = users.find((u) => u.email === email);
-  if (!user) {
-    return res.status(400).json({ success: false, message: "Usuario no encontrado" });
-  }
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return res.status(400).json({ success: false, message: "Contraseña incorrecta" });
-  }
-
-  const authToken = jwt.sign({ email: user.email }, SECRET_KEY, { expiresIn: "1h" });
-  res.json({ success: true, token: authToken });
+// Interfaz admin (protegida en producción)
+app.get('/admin', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Panel Admin - NatMarket</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                .container { max-width: 500px; margin: 0 auto; }
+                input, button { width: 100%; padding: 10px; margin: 5px 0; }
+                button { background: #3498db; color: white; border: none; cursor: pointer; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Confirmar Registro - NatMarket</h1>
+                <form id="confirmForm">
+                    <input type="email" id="userEmail" placeholder="Correo del usuario" required>
+                    <input type="password" id="userPassword" placeholder="Contraseña del usuario" required>
+                    <button type="submit">Activar Cuenta y Notificar Usuario</button>
+                </form>
+                <div id="message"></div>
+            </div>
+            <script>
+                document.getElementById('confirmForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const response = await fetch('https://natmarket.onrender.com/confirm-registration', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userEmail: document.getElementById('userEmail').value,
+                            userPassword: document.getElementById('userPassword').value
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    document.getElementById('message').innerHTML = result.success 
+                        ? '<p style="color: green;">✔️ Cuenta activada y usuario notificado</p>'
+                        : '<p style="color: red;">❌ Error: ' + result.message + '</p>';
+                });
+            </script>
+        </body>
+        </html>
+    `);
 });
 
-// 📌 **Obtener lista de usuarios (solo para depuración)**
-app.get("/users", (req, res) => {
-  res.json(users.map((u) => ({ email: u.email }))); // No devolver contraseñas
+// Ruta raíz (GET /)
+app.get('/', (req, res) => {
+    res.send('Bienvenido a NatMarket. Usa las rutas correctas para interactuar con el servidor.');
 });
 
-// 📌 **Iniciar Servidor**
 app.listen(port, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
+    console.log(`Servidor corriendo en http://localhost:${port}`);
 });
