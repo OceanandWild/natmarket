@@ -11,21 +11,21 @@ const port = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// 📌 Configurar transporte de nodemailer
+// 📌 Configurar transporte de Nodemailer
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'hachiyt001@gmail.com',
-        pass: 'dcdu xort xvau tbak',  // Usa una contraseña de aplicaciones si Gmail bloquea
+        pass: 'dcdu xort xvau tbak', // Usa una contraseña de aplicación en Gmail
     },
 });
 
-// 📌 Base de datos simulada en memoria
+// 📌 Base de datos simulada
 let users = [];
 let pendingVerifications = {};
 
 // 📌 **Ruta de Registro**
-app.post('/register', async (req, res) => {  // ✅ Cambiado a POST
+app.post('/register', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -57,7 +57,7 @@ app.post('/register', async (req, res) => {  // ✅ Cambiado a POST
                 margin-top: 15px;
             ">Verificar Cuenta</a>
             <p>Si no solicitaste este registro, ignora este mensaje.</p>
-        `
+        `,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -97,32 +97,6 @@ app.get('/verify/:token', async (req, res) => {
             margin-top: 15px;
         ">Iniciar Sesión</a>
     `);
-});
-
-// 📌 **Ruta de Inicio de Sesión**
-app.post('/login', async (req, res) => {  // ✅ Cambiado a POST
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ success: false, message: 'Faltan datos' });
-    }
-
-    const user = users.find(u => u.email === email);
-    if (!user) {
-        return res.status(400).json({ success: false, message: 'Usuario no encontrado' });
-    }
-
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-        return res.status(400).json({ success: false, message: 'Contraseña incorrecta' });
-    }
-
-    res.json({ success: true, message: 'Inicio de sesión exitoso' });
-});
-
-// 📌 **Ruta Principal**
-app.get('/', (req, res) => {
-    res.send('Bienvenido a NatMarket. Usa las rutas correctas para interactuar con el servidor.');
 });
 
 // 📌 **Iniciar Servidor**
