@@ -70,13 +70,12 @@ app.post('/register', async (req, res) => {
     });
 });
 
-// 📌 **Ruta de Verificación**
 app.get('/verify/:token', async (req, res) => {
     const token = req.params.token;
     const userData = pendingVerifications[token];
 
     if (!userData) {
-        return res.status(400).send('Enlace de verificación inválido o expirado.');
+        return res.status(400).json({ success: false, message: 'Enlace de verificación inválido o expirado.' });
     }
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
@@ -84,20 +83,10 @@ app.get('/verify/:token', async (req, res) => {
 
     delete pendingVerifications[token];
 
-    res.send(`
-        <h1 style="color: #27ae60;">✅ Cuenta verificada correctamente</h1>
-        <p>Ya puedes iniciar sesión en NatMarket.</p>
-        <a href="http://localhost:5500" style="
-            background: #27ae60;
-            color: white;
-            padding: 12px 25px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 15px;
-        ">Iniciar Sesión</a>
-    `);
+    // Enviar datos al frontend
+    res.json({ success: true, email: userData.email });
 });
+
 
 // 📌 **Iniciar Servidor**
 app.listen(port, () => {
