@@ -2,6 +2,15 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const app = express();
+const cors = require('cors');
+
+// Configura CORS para permitir solicitudes desde el frontend
+app.use(cors({
+    origin: 'https://natmarket.netlify.app', // Permite solicitudes desde este origen
+    methods: ['GET', 'POST'], // Métodos permitidos
+    credentials: true // Permite el envío de credenciales (si es necesario)
+}));
+
 
 app.use(bodyParser.json());
 
