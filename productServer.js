@@ -31,6 +31,11 @@ app.post('/createProduct', (req, res) => {
     });
 });
 
-app.listen(3000, () => {
-    console.log('Servidor corriendo en http://localhost:3000');
+app.listen(3291, () => {
+    console.log('Servidor corriendo en http://localhost:3291');
 });
+
+app.get("/", (req, res) => {
+    res.send("Servidor de productos en funcionamiento");
+  });
+  

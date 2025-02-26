@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = 3290;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -72,7 +72,7 @@ app.post('/confirm-registration', (req, res) => {
                         <p><strong>Contraseña:</strong> ${userPassword}</p>
                     </div>
 
-                    <a href="http://localhost:5500" style="
+                    <a href="http://natmarket.netlify.app" style="
                         background: #27ae60;
                         color: white;
                         padding: 12px 25px;
