@@ -32,7 +32,7 @@ document.getElementById('registerForm').addEventListener('submit', function(even
     const password = document.getElementById('regPassword').value;
 
     // Simular envío al servidor
-    fetch('https://natmarket.onrender.com/register', {
+    fetch('https://natmarket-1.onrender.com/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ document.getElementById('goToNatMarket').addEventListener('click', function(even
 
 
 
-let versionDesarrollo = 1.1; // Versión de desarrollo inicial
+let versionDesarrollo = 1.2; // Versión de desarrollo inicial
 
 // Insertar la información de la versión en el contenedor
 document.getElementById('version-info').textContent = `Versión de Desarrollo: ${versionDesarrollo.toFixed(1)}`;
@@ -438,14 +438,7 @@ continueButton.addEventListener('click', () => {
     }});
 });
 
-// Evento para el botón "Crear Producto"
-document.getElementById('createProductButton').addEventListener('click', function(event) {
-    event.preventDefault();
-    const warningModal = document.getElementById('warningModal');
-    warningModal.style.display = 'block';
-    gsap.to(warningModal, { opacity: 1, duration: 0.3 });
-    gsap.to('.modal-content', { opacity: 1, y: 0, duration: 0.3 });
-});
+
 
 // Cerrar el modal de advertencia
 document.querySelectorAll('.close').forEach(closeBtn => {
@@ -610,7 +603,7 @@ document.getElementById('submitProductButton').addEventListener('click', functio
     loadingCircle.style.display = 'block';
 
     // Simular envío al servidor
-    fetch('https://localhost:3000/createProduct', {
+    fetch('https://localhost:3291/createProduct', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

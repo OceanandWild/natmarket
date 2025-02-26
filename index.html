@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NatMarket</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+</head>
+<body>
+    <!-- Header de la aplicación -->
+<header id="appHeader" style="display: none;">
+    <div class="header-content">
+        <h1>NatMarket</h1>
+        <button id="createProductButton">
+            <span class="plus">+</span>
+            <span class="text">Crear Producto</span>
+        </button>
+    </div>
+</header>
+
+<!-- Modal de Crear Producto -->
+<div id="createProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Crear Producto</h2>
+        <form id="createProductForm">
+            <div id="formSlider">
+                <div class="form-step" data-step="1">
+                    <input type="text" id="productName" placeholder="Nombre del Producto" required>
+                </div>
+                <div class="form-step" data-step="2">
+                    <input type="text" id="productDescription" placeholder="Descripción del Producto" required>
+                </div>
+                <div class="form-step" data-step="3">
+                    <input type="number" id="productPrice" placeholder="Precio del Producto" required>
+                </div>
+                <div class="form-step" data-step="4">
+                    <input type="email" id="userEmail" placeholder="Tu Correo Electrónico" required>
+                </div>
+            </div>
+            <button id="submitProductButton">
+                <canvas id="waveCanvas"></canvas>
+                <span id="submitText">Enviar</span>
+                <div class="loading-circle" id="submitLoadingCircle" style="display: none;"></div>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de advertencia -->
+<div id="warningModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Advertencia</h2>
+        <p>Esta funcionalidad está en desarrollo. ¡Pronto estará disponible!</p>
+    </div>
+</div>
+    <canvas id="desertCanvas" class="desertCanvas"></canvas>
+
+    <canvas id="lionCanvas" class="lionCanvas"></canvas>
+    <div class="login-container">
+        <h1>Bienvenido a NatMarket</h1>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Correo Electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button type="submit" id="animatedButton">Iniciar Sesión</button>
+        </form>
+        <div class="loading-circle" id="loadingCircle" style="display: none;"></div>
+        <p class="message" id="loginMessage"></p>
+        <p class="warning">¿No tienes una cuenta? <a href="#" id="registerLink">Regístrate aquí</a>.</p>
+        <!-- Sección separada con hr y un mensaje personalizado -->
+    <hr>
+    <div class="app-prompt">
+        <p>Prefieres la app? Descárgala aquí:</p>
+        <button id="goToNatMarket" style="background-color: #27ae60; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer;">
+            Descargar la app
+        </button>
+    </div>
+    </div>
+
+     <!-- Modal de éxito -->
+    <div id="successModal" class="modal2">
+        <div class="checkmark"></div>
+        <p>Correo enviado correctamente</p>
+    </div>
+
+    <div id="policyContainer" style="display: none;">
+        <h1 id="policyTitle">Políticas de Compra y Venta</h1>
+        <h3 id="policySubtitle">
+            Estas políticas son imprescindibles para la Venta y Compra de Productos, 
+            si te denuncian o vemos que un producto rompe las normas cerraremos tu cuenta.
+        </h3>
+        <div id="policyContent">
+            <p>
+                🔹 Aquí van las políticas que escribirás. Puedes agregar múltiples párrafos 
+                y este contenedor tendrá un `scroll` si el contenido es muy extenso.
+            </p>
+        </div>
+        <button id="continueButton" disabled>
+            <div id="loadingCircle2" style="display: none;"></div>
+            Continuar (<span id="countdown">60</span>s)
+        </button>
+    </div>
+
+    <!-- Modal de Preguntas de Políticas -->
+<div id="policyQuestionsModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Preguntas de Políticas</h2>
+        <div id="questionContainer">
+            <!-- Aquí se mostrarán las preguntas -->
+        </div>
+        <form id="policyQuestionsForm">
+            <input type="text" id="policyAnswer" placeholder="Tu respuesta" required>
+            <button type="submit">Responder</button>
+        </form>
+        <p class="message" id="policyMessage"></p>
+        <div id="loadingCircle3" class="loading-circle" style="display: none;"></div>
+    </div>
+</div>
+
+
+    <div id="final-container">
+        <div id="final-message">NatMarket está siendo desarrollado</div>
+        <hr>
+        <div id="final-submessage">
+            Lo que viste anteriormente es el inicio de lo que sería NatMarket, pronto estará disponible.
+        </div>
+    </div>
+
+    <!-- Modal de Registro -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Registro</h2>
+            <form id="registerForm">
+                <input type="email" id="regEmail" placeholder="Correo Electrónico" required>
+                <input type="password" id="regPassword" placeholder="Contraseña" required>
+                <button type="submit">Registrarse</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Verificación -->
+    <div id="verificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="verification">
+                <div class="circle"></div>
+                <p>Se ha enviado tu solicitud al desarrollador. Por favor, espera de 5 a 15 minutos.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor para la información de la versión -->
+    <div id="version-info"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

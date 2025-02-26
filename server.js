@@ -3,9 +3,9 @@ const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
-const port = 3290;
+const port = 3003;
 
-app.use(cors());
+app.use(cors()); // Habilita CORS para todas las rutas
 app.use(bodyParser.json());
 
 const transporter = nodemailer.createTransport({
