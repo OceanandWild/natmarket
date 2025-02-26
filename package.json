@@ -9,5 +9,13 @@
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.10.0",
     "uuid": "^11.0.5"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "start:product": "node productServer.js",
+    "start:both": "concurrently \"node server.js\" \"node productServer.js\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.2"
   }
 }
