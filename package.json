@@ -13,7 +13,8 @@
   "scripts": {
     "start": "node server.js",
     "start:product": "node productServer.js",
-    "start:both": "concurrently \"node server.js\" \"node productServer.js\""
+    "start:both": "concurrently \"node server.js\" \"node productServer.js\"",
+    "build": "npm install"
   },
   "devDependencies": {
     "concurrently": "^8.0.2"
