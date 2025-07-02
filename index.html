@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NatMarket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+    <style>
+        /* Base styles for a clean, modern look */
+        body {
+            font-family: "Inter", sans-serif;
+            /* Fondo con gradiente sutil de desierto */
+            background-image: linear-gradient(to bottom right, #fdf8e6, #f9e79f, #f0c27b, #a0522d); /* Gradiente de amarillo arena, naranja suave, a un marrón terroso */
+            background-attachment: fixed; /* Asegura que el gradiente cubra todo el viewport */
+            color: #333; /* Darker text for better contrast */
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem; /* Increased padding for more breathing room */
+        }
+
+        /* Headings */
+        h1, h2, h3 {
+            font-weight: 700; /* Bold headings */
+            color: #2c3e50; /* Darker blue-gray for headings */
+        }
+
+.main-title {
+    font-size: 3rem;
+    line-height: 1;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.15);
+    color: #28a745;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5em 0;
+    position: relative;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    word-break: break-word;
+}
+@media (min-width: 480px) {
+    .main-title {
+        font-size: 4rem;
+    }
+}
+@media (min-width: 768px) {
+    .main-title {
+        font-size: 5rem;
+    }
+}
+@media (min-width: 1024px) {
+    .main-title {
+        font-size: 6rem;
+    }
+}
+.main-title .market-icon {
+    position: relative;
+    display: inline-block;
+    margin-right: 0.05em;
+    font-size: 0.7em;
+}
+.main-title .market-icon .leaf-svg {
+    position: absolute;
+    top: -0.15em;
+    right: -0.15em;
+    width: 0.5em;
+    height: 0.5em;
+    color: #228B22;
+    transform: rotate(0deg);
+}
+
+            
+        
+        h2 {
+            font-size: 2.5rem; /* Larger section titles */
+            margin-bottom: 1.5rem;
+            color: #34495e; /* Slightly lighter heading color */
+        }
+        
+        h3 {
+            font-size: 1.75rem; /* Product card titles */
+        }
+
+        /* User ID Display */
+        .user-id-display {
+            background-color: #fef3c7; /* Light yellow for desert feel */
+            border: 1px solid #fde68a; /* Slightly darker yellow border */
+            color: #92400e; /* Dark brown text */
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* More pronounced shadow */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem; /* More space below */
+            font-size: 0.95rem;
+        }
+        
+        .user-id-display button {
+            color: #92400e;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .user-id-display button:hover {
+            color: #b45309;
+        }
+
+        /* Form Container */
+        .form-container {
+            background-color: #ffffff;
+            padding: 2.5rem; /* More padding */
+            border-radius: 1.25rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); /* Stronger, softer shadow */
+            margin-bottom: 2.5rem; /* More space below */
+        }
+        
+        .form-container label {
+            font-weight: 500; /* Medium weight for labels */
+            color: #555;
+            margin-bottom: 0.3rem;
+        }
+
+        .form-container input[type="text"],
+        .form-container input[type="number"],
+        .form-container input[type="tel"],
+        .form-container select, /* Added select */
+        .form-container textarea {
+            border: 1px solid #d1d5db; /* Lighter border */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem; /* More padding inside inputs */
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* Subtle inner shadow */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .form-container input:focus,
+        .form-container select:focus, /* Added select */
+        .form-container textarea:focus {
+            outline: none;
+            border-color: #f59e0b; /* Amber on focus */
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25); /* Focus ring */
+        }
+        .form-container input[type="file"] {
+            padding-top: 0.5rem; /* Adjust padding for file input */
+            padding-bottom: 0.5rem;
+        }
+        .form-container input[type="file"]::file-selector-button {
+            background-color: #fef3c7; /* Light yellow */
+            color: #92400e; /* Dark brown */
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            border: 1px solid #fde68a;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        .form-container input[type="file"]::file-selector-button:hover {
+            background-color: #fde68a;
+            border-color: #fbbf24;
+        }
+
+        /* Product Card */
+        .product-card {
+            background-color: #ffffff;
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); /* Softer, larger shadow */
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Ensure cards take full height in grid */
+        }
+        .product-card:hover {
+            transform: translateY(-8px); /* More pronounced lift */
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2); /* Even larger shadow on hover */
+        }
+        .product-image-container {
+            width: 100%;
+            padding-top: 75%; /* 4:3 Aspect Ratio */
+            position: relative;
+            background-color: #cfd8dc; /* Slightly darker placeholder */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-bottom: 4px solid #f59e0b; /* Vibrant amber border at the bottom */
+        }
+        .product-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .product-content {
+            padding: 1.5rem; /* Consistent padding */
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Allows content to push button to bottom */
+        }
+        .product-content h3 {
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        .product-content p.description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            flex-grow: 1; /* Allows description to take available space */
+        }
+        .product-content p.price {
+            font-size: 2.25rem; /* Larger price */
+            font-weight: 800; /* Extra bold price */
+            color: #059669; /* Darker green for price */
+            margin-bottom: 1.25rem; /* More space above button */
+        }
+
+        /* Modern Button Styles (btn-modern) */
+        .btn-modern {
+            background-image: linear-gradient(to right, #f59e0b, #d97706); /* Amber gradient */
+            color: white;
+            padding: 0.85rem 1.75rem; /* Slightly larger padding */
+            border-radius: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4), 0 4px 6px -2px rgba(245, 158, 11, 0.2);
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.95rem;
+        }
+        .btn-modern:hover {
+            transform: translateY(-4px) scale(1.02);
+            background-image: linear-gradient(to right, #d97706, #b45309);
+            box-shadow: 0 15px 30px -8px rgba(245, 158, 11, 0.6), 0 6px 10px -3px rgba(245, 158, 11, 0.35);
+        }
+        .btn-modern:active {
+            transform: translateY(-1px) scale(0.99);
+            box-shadow: 0 5px 10px rgba(245, 158, 11, 0.3);
+        }
+        /* AI Button specific styles */
+        .btn-ai {
+            background-image: linear-gradient(to right, #8b5cf6, #d946ef);
+            box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.4), 0 4px 6px -2px rgba(139, 92, 246, 0.2);
+        }
+        .btn-ai:hover {
+            background-image: linear-gradient(to right, #7c3aed, #c026d3);
+            box-shadow: 0 15px 30px -8px rgba(139, 92, 246, 0.6), 0 6px 10px -3px rgba(139, 92, 246, 0.35);
+        }
+
+        /* Prominent AI Button */
+        .btn-ai-prominent {
+            background-image: linear-gradient(to right, #4CAF50, #8BC34A); /* Green gradient */
+            color: white;
+            padding: 1rem 2rem; /* Larger padding */
+            border-radius: 1rem; /* More rounded */
+            font-weight: 700; /* Bolder */
+            font-size: 1.1rem; /* Larger font */
+            box-shadow: 0 15px 30px -5px rgba(76, 175, 80, 0.5), 0 6px 10px -3px rgba(76, 175, 80, 0.3); /* Stronger shadow */
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 2rem; /* Space below it */
+        }
+        .btn-ai-prominent:hover {
+            transform: translateY(-5px) scale(1.03);
+            background-image: linear-gradient(to right, #66BB6A, #9CCC65);
+            box-shadow: 0 20px 40px -10px rgba(76, 175, 80, 0.7), 0 8px 12px -4px rgba(76, 175, 80, 0.4);
+        }
+        .btn-ai-prominent:active {
+            transform: translateY(-2px) scale(0.98);
+            box-shadow: 0 8px 15px rgba(76, 175, 80, 0.4);
+        }
+
+
+        /* Secondary Button (for Cancel) */
+        .btn-secondary {
+            background-color: #94a3b8;
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.95rem;
+        }
+        .btn-secondary:hover {
+            background-color: #64748b;
+            transform: translateY(-2px);
+        }
+        .btn-secondary:active {
+            transform: translateY(0);
+        }
+
+        /* Modal Styles - ENHANCED */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            width: 90%;
+            max-width: 500px; /* Default max-width for modals */
+            text-align: center;
+            position: relative;
+            animation: slideInFromTop 0.4s ease-out forwards;
+
+            /* Responsive adjustments for modals */
+            @media (min-width: 640px) { /* sm breakpoint */
+                padding: 2.5rem;
+                max-width: 600px;
+            }
+            @media (min-width: 1024px) { /* lg breakpoint */
+                padding: 3rem;
+                max-width: 700px; /* Larger max-width for bigger screens */
+            }
+        }
+
+
+
+/* Mejoras para el modal de Notas de Actualización (Daily Modal) */
+#dailyModal .modal-content {
+    max-width: 95vw;
+    width: 100%;
+    padding: 1.5rem 1rem;
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 32px rgba(40,167,69,0.18), 0 2px 8px rgba(0,0,0,0.08);
+    background: #fffefb;
+    margin: 0 1rem;
+    position: relative;
+    /* Responsive */
+    @media (min-width: 480px) {
+        max-width: 420px;
+        padding: 2rem 1.5rem;
+    }
+    @media (min-width: 768px) {
+        max-width: 500px;
+        padding: 2.5rem 2rem;
+    }
+    @media (min-width: 1024px) {
+        max-width: 540px;
+        padding: 2.5rem 2.5rem;
+    }
+}
+
+#dailyModalTitle {
+    font-size: 2rem;
+    color: #28a745;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+#dailyModalUpdateTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f59e0b;
+    margin-bottom: 0.2rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+#dailyModalDate {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 0.8rem;
+    text-align: center;
+    font-style: italic;
+}
+
+#dailyModalImage {
+    max-width: 100%;
+    max-height: 120px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 0.75rem;
+    margin: 0 auto 1rem auto;
+    box-shadow: 0 2px 8px rgba(40,167,69,0.08);
+    display: block;
+}
+
+#dailyModalContent {
+    max-height: 180px;
+    overflow-y: auto;
+    text-align: left;
+    padding-right: 0.5rem;
+    color: #444;
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+    scrollbar-width: thin;
+    scrollbar-color: #f59e0b #fef3c7;
+    -webkit-overflow-scrolling: touch; /* <-- Añade esta línea para scroll suave en móvil */
+    touch-action: pan-y; /* <-- Permite scroll vertical con el dedo en móviles */
+}
+
+#dailyModalContent::-webkit-scrollbar {
+    width: 7px;
+}
+#dailyModalContent::-webkit-scrollbar-thumb {
+    background: #f59e0b;
+    border-radius: 8px;
+}
+#dailyModalContent::-webkit-scrollbar-track {
+    background: #fef3c7;
+    border-radius: 8px;
+}
+
+/* Etiquetas de categoría para notas de actualización */
+.update-tag {
+    display: inline-block;
+    font-size: 0.85em;
+    font-weight: 700;
+    padding: 0.18em 0.75em;
+    border-radius: 1em;
+    margin-right: 0.5em;
+    margin-bottom: 0.3em;
+    vertical-align: middle;
+    letter-spacing: 0.03em;
+}
+.update-tag.nuevo { background: #d1fae5; color: #059669; border: 1px solid #34d399; }
+.update-tag.mejora { background: #e0e7ff; color: #4338ca; border: 1px solid #818cf8; }
+.update-tag.cambio { background: #fef3c7; color: #b45309; border: 1px solid #fbbf24; }
+.update-tag.eliminado { background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
+.update-tag.nota { background: #e0f2fe; color: #0369a1; border: 1px solid #38bdf8; }
+.update-tag.importante { background: #fff7ed; color: #c2410c; border: 1px solid #fdba74; }
+
+/* Botón de cerrar más visible en móvil */
+#dailyModal .close-button {
+    top: 0.7rem;
+    right: 1.1rem;
+    font-size: 2rem;
+    color: #aaa;
+}
+#dailyModal .close-button:hover {
+    color: #28a745;
+}
+
+/* Botón de confirmación */
+.btn-daily-confirm {
+    background-image: linear-gradient(to right, #f59e0b, #d97706);
+    color: white;
+    padding: 0.85rem 1.75rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4), 0 4px 6px -2px rgba(245, 158, 11, 0.2);
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.95rem;
+    margin-top: 1.2rem;
+}
+.btn-daily-confirm:hover {
+    background-image: linear-gradient(to right, #d97706, #b45309);
+    box-shadow: 0 15px 30px -8px rgba(245, 158, 11, 0.6), 0 6px 10px -3px rgba(245, 158, 11, 0.35);
+    transform: translateY(-2px) scale(1.03);
+}
+
+
+        .modal-content h3 {
+            color: #34495e;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .modal-content p {
+            color: #555;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        .close-button {
+            color: #777;
+            font-size: 32px;
+            top: 1rem;
+            right: 1.5rem;
+            position: absolute;
+            line-height: 1;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+        .close-button:hover {
+            color: #333;
+        }
+
+        /* Loading Overlay - ENHANCED */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2rem;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .loading-overlay i {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: #f59e0b;
+        }
+        .loading-overlay p {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fef3c7;
+        }
+
+        /* Category Filter Buttons */
+        .category-filter-button {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid #fde68a;
+        }
+        .category-filter-button:hover {
+            background-color: #fde68a;
+            color: #78350f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px (0,0,0,0.1);
+        }
+        .category-filter-button.active {
+            background-image: linear-gradient(to right, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 5px 10px rgba(245, 158, 11, 0.3);
+            border-color: transparent;
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInFromTop {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* NEW: Unique style for the daily modal confirm button */
+        .btn-daily-confirm {
+            background-image: linear-gradient(to right, #f59e0b, #d97706); /* Amber gradient */
+            color: white;
+            padding: 0.85rem 1.75rem; /* Slightly larger padding */
+            border-radius: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4), 0 4px 6px -2px rgba(245, 158, 11, 0.2);
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.95rem;
+        }
+        .btn-daily-confirm:hover {
+            transform: translateY(-4px) scale(1.02);
+            background-image: linear-gradient(to right, #d97706, #b45309);
+            box-shadow: 0 15px 30px -8px rgba(245, 158, 11, 0.6), 0 6px 10px -3px rgba(245, 158, 11, 0.35);
+        }
+        .btn-daily-confirm:active {
+            transform: translateY(-1px) scale(0.99);
+            box-shadow: 0 5px 10px rgba(245, 158, 11, 0.3);
+        }
+
+        /* --- MEJORAS VISUALES PARA LA SECCIÓN DE PRODUCTOS DISPONIBLES --- */
+#productsContainer {
+    background: rgba(255,255,255,0.85);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 32px rgba(40,167,69,0.08), 0 2px 8px rgba(0,0,0,0.06);
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+    min-height: 300px;
+}
+@media (min-width: 640px) {
+    #productsContainer {
+        padding: 2.5rem 2rem;
+    }
+}
+@media (min-width: 1024px) {
+    #productsContainer {
+        padding: 3rem 2.5rem;
+    }
+}
+.product-card {
+    border: 2px solid #fef3c7;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+    background: #fffefb;
+    position: relative;
+}
+.product-card:hover {
+    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.13), 0 2px 8px rgba(40,167,69,0.10);
+    border-color: #fbbf24;
+    transform: translateY(-4px) scale(1.01);
+}
+.product-content h3 {
+    font-size: 1.3rem;
+    color: #166534;
+    font-weight: 700;
+}
+.product-content .publisher {
+    font-size: 0.95rem;
+    color: #6366f1;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+}
+.product-content .publisher i {
+    color: #f59e0b;
+}
+.btn-delete-product {
+    background: linear-gradient(to right, #ef4444, #f59e0b);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 0.6rem;
+    padding: 0.5rem 1.2rem;
+    font-size: 0.95rem;
+    margin-top: 0.7rem;
+    margin-bottom: 0.2rem;
+    box-shadow: 0 4px 12px -4px #ef4444a0;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    justify-content: center;
+}
+.btn-delete-product:hover {
+    background: linear-gradient(to right, #dc2626, #fbbf24);
+    box-shadow: 0 8px 24px -6px #ef4444b0;
+    transform: translateY(-2px) scale(1.03);
+}
+.products-title {
+    font-size: 2.2rem;
+    color: #b45309;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+}
+@media (max-width: 480px) {
+    .products-title {
+        font-size: 1.3rem;
+        flex-direction: column;
+        gap: 0.2em;
+    }
+    #productsContainer {
+        padding: 1.2rem 0.2rem;
+    }
+}
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+<header class="w-full mb-10">
+    <nav class="flex items-center justify-between py-4 px-6 bg-white bg-opacity-80 rounded-2xl shadow-lg mb-6 border border-amber-100">
+        <div class="flex items-center space-x-3">
+            <span class="market-icon relative text-5xl text-green-600">
+                <i class="fas fa-store"></i>
+                <svg class="leaf-svg absolute" style="top:-0.5em;right:-0.5em;width:1.5em;height:1.5em;" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.3 6.7c-.4-.4-1-.4-1.4 0l-7 7c-.4.4-.4 1 0 1.4.2.2.4.3.7.3s.5-.1.7-.3l7-7c.4-.4.4-1 0-1.4zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM10.8 17.2c-.4-.4-1-.4-1.4 0l-2-2c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l2 2c.4.4.4 1 0 1.4z"/>
+                </svg>
+            </span>
+            <span class="font-extrabold text-3xl md:text-4xl text-green-700 tracking-widest uppercase select-none">NatMarket</span>
+        </div>
+        <div class="hidden md:flex items-center space-x-6">
+            <a href="#" class="text-amber-700 hover:text-amber-900 font-semibold transition">Inicio</a>
+            <a href="#productsContainer" class="text-amber-700 hover:text-amber-900 font-semibold transition">Productos</a>
+            <a href="#addProductForm" class="text-amber-700 hover:text-amber-900 font-semibold transition">Publicar</a>
+            <button id="aboutAppButton" class="btn-secondary px-4 py-2 ml-2">
+                <i class="fas fa-info-circle mr-2"></i>Acerca de la App
+            </button>
+        </div>
+        <div class="md:hidden">
+            <!-- Simple mobile menu icon (optional, not functional) -->
+            <button class="text-amber-700 text-3xl focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+    <div class="flex flex-col items-center text-center">
+        <h1 class="main-title mb-2">
+            <span class="market-icon">
+                <i class="fas fa-store"></i>
+                <svg class="leaf-svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.3 6.7c-.4-.4-1-.4-1.4 0l-7 7c-.4.4-.4 1 0 1.4.2.2.4.3.7.3s.5-.1.7-.3l7-7c.4-.4.4-1 0-1.4zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM10.8 17.2c-.4-.4-1-.4-1.4 0l-2-2c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l2 2c.4.4.4 1 0 1.4z"/>
+                </svg>
+            </span>
+            NATMARKET
+        </h1>
+        <p class="text-xl text-gray-700 mb-2">Tu mercado natural de productos sostenibles</p>
+        <p class="text-base text-gray-500 mb-4 max-w-2xl">Compra y vende productos ecológicos, artesanales y de segunda mano. Únete a la comunidad que impulsa un consumo más responsable y sostenible en tu ciudad.</p>
+        <div class="flex flex-wrap justify-center gap-3">
+            <span class="inline-flex items-center bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                <i class="fas fa-leaf mr-1"></i>Sostenible
+            </span>
+            <span class="inline-flex items-center bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-semibold">
+                <i class="fas fa-recycle mr-1"></i>Segunda Mano
+            </span>
+            <span class="inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
+                <i class="fas fa-users mr-1"></i>Comunidad Local
+            </span>
+        </div>
+    </div>
+</header>
+
+
+        <div class="user-id-display">
+            <strong class="font-bold">Tu ID de Usuario:</strong>
+            <span id="userIdDisplay" class="block sm:inline break-all ml-2">Cargando...</span>
+            <button onclick="copyUserId()" class="ml-4 focus:outline-none">
+                <i class="fas fa-copy"></i>
+            </button>
+        </div>
+        <div class="user-id-display mt-4">
+            <strong class="font-bold">ID de la Aplicación (App ID):</strong>
+            <span id="appIdDisplay" class="block sm:inline break-all ml-2">Cargando...</span>
+            <button onclick="copyAppId()" class="ml-4 focus:outline-none">
+                <i class="fas fa-copy"></i>
+            </button>
+        </div>
+
+        <div class="form-container">
+            <h2 class="mb-6 flex items-center">
+                <i class="fas fa-plus-circle mr-3 text-amber-600"></i>Publicar Nuevo Producto
+            </h2>
+            <button type="button" id="autoFillProductButton" class="btn-ai-prominent w-full mb-6">
+                <i class="fas fa-robot mr-3"></i>Generar Producto con IA
+            </button>
+
+            <form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="productName" class="block text-sm font-medium mb-1">Nombre del Producto</label>
+                    <input type="text" id="productName" name="productName" required
+                           class="block w-full">
+                    <div class="flex justify-end mt-2">
+                        <button type="button" id="suggestProductNameButton" class="btn-modern btn-ai text-sm px-3 py-1">
+                            <i class="fas fa-lightbulb mr-2"></i>✨ Sugerir Nombre
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label for="productDescription" class="block text-sm font-medium mb-1">Descripción</label>
+                    <textarea id="productDescription" name="productDescription" rows="3" required
+                              class="block w-full"></textarea>
+                    <div class="flex justify-end mt-2">
+                        <button type="button" id="enhanceDescriptionButton" class="btn-modern btn-ai text-sm px-3 py-1">
+                            <i class="fas fa-magic mr-2"></i>✨ Mejorar Descripción
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label for="productPrice" class="block text-sm font-medium mb-1">Precio</label>
+                    <input type="number" id="productPrice" name="productPrice" step="0.01" required
+                           class="block w-full">
+                </div>
+                <div>
+                    <label for="contactNumber" class="block text-sm font-medium mb-1">Número de Contacto (WhatsApp)</label>
+                    <input type="tel" id="contactNumber" name="contactNumber" placeholder="+5491112345678" required
+                           class="block w-full">
+                </div>
+                <div>
+                    <label for="productCategory" class="block text-sm font-medium mb-1">Categoría</label>
+                    <input type="text" id="productCategory" name="productCategory" placeholder="Ej: Electrónica, Ropa, Hogar" required
+                           class="block w-full">
+                </div>
+                <div>
+                    <label for="productCondition" class="block text-sm font-medium mb-1">Estado</label>
+                    <select id="productCondition" name="productCondition" required
+                            class="block w-full">
+                        <option value="">Selecciona un estado</option>
+                        <option value="Nuevo">Nuevo</option>
+                        <option value="Como Nuevo">Como Nuevo</option>
+                        <option value="Usado">Usado</option>
+                        <option value="Para Partes">Para Partes</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="productFaq" class="block text-sm font-medium mb-1">Preguntas Frecuentes (FAQ)</label>
+                    <textarea id="productFaq" name="productFaq" rows="4"
+                              class="block w-full"></textarea>
+                    <div class="flex justify-end mt-2">
+                        <button type="button" id="generateFaqButton" class="btn-modern btn-ai text-sm px-3 py-1">
+                            <i class="fas fa-question-circle mr-2"></i>✨ Generar FAQ
+                        </button>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="productImage" class="block text-sm font-medium mb-1">Imagen del Producto</label>
+                    <input type="file" id="productImage" name="productImage" accept="image/*"
+                           class="block w-full">
+                </div>
+                <div class="md:col-span-2 flex flex-col items-center mt-4 space-y-4">
+                    <div class="w-full">
+                        <button type="button" id="generateSloganButton" class="btn-modern btn-ai w-full">
+                            <i class="fas fa-lightbulb mr-2"></i>✨ Generar Eslogan
+                        </button>
+                        <p id="sloganDisplay" class="mt-2 text-center text-sm text-gray-600 italic"></p>
+                    </div>
+                    <button type="submit" class="btn-modern w-full" id="submitProductButton">
+                        <i class="fas fa-upload mr-2"></i>Publicar Producto
+                    </button>
+                </div>
+            </form>
+        </div>
+
+<h2 class="products-title">
+    <i class="fas fa-boxes mr-3 text-amber-700"></i>Productos Disponibles
+</h2>
+
+        <div id="categoryFilterContainer" class="flex flex-wrap gap-3 mb-6">
+            <button class="category-filter-button active" data-category="Todos">Todos</button>
+            <button class="category-filter-button" data-category="Electrónica">Electrónica</button>
+            <button class="category-filter-button" data-category="Ropa">Ropa</button>
+            <button class="category-filter-button" data-category="Hogar">Hogar</button>
+            <button class="category-filter-button" data-category="Libros">Libros</button>
+            <button class="category-filter-button" data-category="Deportes">Deportes</button>
+            </div>
+
+        <div id="productsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-6">
+            <div class="product-card flex items-center justify-center h-48 text-gray-500">
+                <i class="fas fa-spinner fa-spin mr-2"></i>Cargando productos...
+            </div>
+        </div>
+
+        <div id="whatsappModal" class="modal">
+            <div class="modal-content relative">
+                <span class="close-button">&times;</span>
+                <h3 class="mb-4">Contactar al Vendedor</h3>
+                <p class="mb-6">Estás a punto de ser redirigido a WhatsApp para contactar al vendedor de "<span id="modalProductName" class="font-semibold"></span>".</p>
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <button id="confirmWhatsapp" class="btn-modern">
+                        <i class="fab fa-whatsapp mr-2"></i>Abrir WhatsApp
+                    </button>
+                    <button id="cancelWhatsapp" class="btn-secondary">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="messageModal" class="modal">
+            <div class="modal-content relative">
+                <span class="close-button" id="messageModalClose">&times;</span>
+                <h3 class="mb-4" id="messageModalTitle"></h3>
+                <p class="mb-6" id="messageModalText"></p>
+                <button id="messageModalConfirm" class="btn-modern">Aceptar</button>
+            </div>
+        </div>
+
+        <div id="autoFillModal" class="modal">
+            <div class="modal-content relative">
+                <span class="close-button" id="autoFillModalClose">&times;</span>
+                <h3 class="mb-4">Generar Producto con IA</h3>
+                <p class="mb-4">Describe el producto que deseas generar (ej: "un smartphone de gama alta con cámara excelente" o "una camiseta de algodón orgánica para verano").</p>
+                <textarea id="autoFillPromptTextarea" rows="4" placeholder="Describe el producto aquí..."
+                          class="block w-full border border-gray-300 rounded-md p-3 mb-4 focus:outline-none focus:border-amber-500"></textarea>
+                
+                <p class="mb-2 text-left text-sm font-medium">Por favor, ingresa tus datos para el producto:</p>
+                <label for="userContactNumber" class="block text-sm font-medium mb-1 text-left">Tu Número de Contacto (WhatsApp)</label>
+                <input type="tel" id="userContactNumber" placeholder="+5491112345678"
+                       class="block w-full border border-gray-300 rounded-md p-3 mb-4 focus:outline-none focus:border-amber-500">
+                
+                <label for="userProductPrice" class="block text-sm font-medium mb-1 text-left">Precio Deseado</label>
+                <input type="number" id="userProductPrice" step="0.01" placeholder="Ej: 99.99"
+                       class="block w-full border border-gray-300 rounded-md p-3 mb-6 focus:outline-none focus:border-amber-500">
+
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <button id="confirmAutoFill" class="btn-modern">
+                        <i class="fas fa-robot mr-2"></i>Generar
+                    </button>
+                    <button id="cancelAutoFill" class="btn-secondary">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="dynamicInfoModal" class="modal">
+            <div class="modal-content relative">
+                <span class="close-button" id="dynamicInfoModalClose">&times;</span>
+                <h3 class="mb-4" id="dynamicInfoModalTitle"></h3>
+                <div class="text-left mb-6" id="dynamicInfoModalBody"></div>
+                <button id="dynamicInfoModalConfirm" class="btn-modern">Aceptar</button>
+            </div>
+        </div>
+
+        <div id="dailyModal" class="modal">
+            <div class="modal-content relative">
+                <span class="close-button" id="dailyModalClose">&times;</span>
+                <h3 id="dailyModalTitle"></h3>
+                <p id="dailyModalUpdateTitle" class="text-sm text-gray-500 mb-2"></p> 
+                <p id="dailyModalDate" class="text-sm text-gray-500 mb-4"></p>
+                <img id="dailyModalImage" src="" alt="Imagen de NatMarket" class="w-full h-auto rounded-lg mb-4">
+                <div id="dailyModalContent" class="text-gray-700 text-base leading-relaxed">
+                    </div>
+                <button id="dailyModalConfirm" class="btn-daily-confirm mt-6 w-full">¡Entendido!</button>
+            </div>
+        </div>
+
+
+        <div id="loadingOverlay" class="loading-overlay">
+            <i class="fas fa-spinner fa-spin mr-3"></i><p id="loadingText">Subiendo producto...</p>
+        </div>
+
+        <!-- NUEVO OVERLAY DE LOADING GLOBAL, reemplaza el anterior -->
+<div id="ollamaLoadingOverlay" class="fixed inset-0 z-[2000] flex flex-col items-center justify-center bg-black bg-opacity-80 transition-opacity duration-300" style="display:none;">
+    <div class="flex flex-col items-center">
+        <div class="relative mb-6">
+            <span class="block w-24 h-24 rounded-full border-8 border-green-400 border-t-amber-400 animate-spin"></span>
+            <span class="absolute inset-0 flex items-center justify-center text-5xl text-green-500">
+                <i class="fas fa-robot"></i>
+            </span>
+        </div>
+        <p class="text-2xl md:text-3xl font-bold text-white mb-2">Generando con IA (Ollama Gemma 3:1B)...</p>
+        <p class="text-lg text-amber-200">Por favor espera, esto puede tardar unos segundos.</p>
+    </div>
+</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, where ,  getDocs, deleteDoc, doc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // IMPORTANT: Replace with your Cloudinary Cloud Name and Upload Preset
+        // You can get these from your Cloudinary Dashboard under "Account Details" and "Settings -> Upload -> Upload presets"
+        const CLOUDINARY_CLOUD_NAME = 'dlw9ly73o'; // e.g., 'your_cloud_name'
+        const CLOUDINARY_UPLOAD_PRESET = 'natmarket'; // e.g., 'unsigned_upload_preset'
+
+        let firebaseConfig;
+        let appId;
+
+
+
+        // La clave de API de Gemini se inicializa aquí.
+        // Si estás en Canvas, se usará una clave provista por el entorno.
+        // Si estás en local, DEBES PEGAR TU CLAVE REAL AQUÍ.
+        let geminiApiKey = "AIzaSyDfH_PskOrb8Nnu9dMkUhNop9TbrtNmF7o"; // <--- ¡TU CLAVE REAL DE GEMINI AQUÍ PARA DESARROLLO LOCAL!
+
+        // ####################################################################################
+        // ### ATENCIÓN: CONFIGURACIÓN DE FIREBASE PARA DESARROLLO LOCAL                    ###
+        // ### SI ESTÁS EJECUTANDO ESTO FUERA DEL ENTORNO DE CANVAS, DEBES REEMPLAZAR     ###
+        // ### LOS VALORES DE "TU_..." CON LAS CREDENCIALES REALES DE TU PROYECTO FIREBASE. ###
+        // ####################################################################################
+
+        // Determina la configuración de Firebase y el ID de la aplicación.
+        // Si las variables de entorno de Canvas están presentes, las usa.
+        // De lo contrario, usa una configuración de respaldo para desarrollo local.
+        if (typeof __firebase_config !== 'undefined' && typeof __app_id !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+            // El appId para la ruta de la colección de Firestore se mantiene fijo para persistencia global.
+            appId = 'natmarket-global-products'; 
+            // Asegura que el appId en firebaseConfig coincida con el proporcionado por Canvas para la inicialización.
+            firebaseConfig.appId = __app_id; 
+            console.log("Firebase: Usando configuración y App ID de Canvas para inicialización. App ID fijo para Firestore:", appId);
+            console.log("Canvas __app_id:", __app_id);
+            console.log("Canvas __firebase_config:", __firebase_config);
+        } else {
+            console.warn("Firebase: Variables de entorno de Canvas (__firebase_config, __app_id) no encontradas. Usando configuración Firebase predeterminada para desarrollo local.");
+            // *** REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO FIREBASE PARA DESARROLLO LOCAL ***
+            firebaseConfig = {
+                 apiKey: "AIzaSyAOOaV9G6mNpw2lfNrtxtrawNRQnehkqCo",
+  authDomain: "jorexpress-2c2a1.firebaseapp.com",
+  projectId: "jorexpress-2c2a1",
+  storageBucket: "jorexpress-2c2a1.firebasestorage.app",
+  messagingSenderId: "337268093392",
+  appId: "1:337268093392:web:b23ac40d1de59ab4fec9d5",
+  measurementId: "G-LQ64QE4CR3"
+            };
+            // El appId para la ruta de la colección de Firestore se mantiene fijo para persistencia global.
+            appId = 'natmarket-global-products';
+            console.log("Firebase: Usando configuración predeterminada y App ID fijo para Firestore:", appId);
+            console.log("firebaseConfig.projectId (solo para referencia):", firebaseConfig.projectId);
+
+            // ### CONFIGURACIÓN DE LA API DE GEMINI PARA DESARROLLO LOCAL ###
+            // Obtén tu clave en Google AI Studio (https://aistudio.google.com/app/apikey)
+            // ¡PEGA TU CLAVE DE API DE GEMINI AQUÍ PARA DESARROLLO LOCAL!
+            // Esta línea ya tiene la clave que proporcionaste.
+            // geminiApiKey = "AIzaSyDfH_PskOrb8Nnu9dMkUhNop9TbrtNmF7o"; 
+            console.log("Gemini: Usando clave de API para desarrollo local.");
+        }
+
+        // --- INSTRUCCIONES ADICIONALES PARA FIREBASE LOCAL ---
+        // 1. Habilita la Autenticación Anónima en tu proyecto de Firebase (Authentication -> Sign-in method).
+        // 2. Configura las Reglas de Seguridad de Firestore para permitir la lectura y escritura.
+        //    Para desarrollo, puedes usar reglas permisivas (¡NO USAR EN PRODUCCIÓN SIN REVISIÓN!):
+        //    rules_version = '2';
+        //    service cloud.firestore {
+        //      match /databases/{database}/documents {
+        //        // Permite a cualquier usuario autenticado (incluidos los anónimos) leer y escribir en esta colección
+        //        match /artifacts/{appId}/public/data/products/{document=**} {
+        //          allow read, write: if request.auth != null;
+        //        }
+        //      }
+        //    }
+        // ----------------------------------------------------
+
+        console.log("Firebase App ID utilizado para Firestore (final):", appId); // Log the final appId for debugging
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUserId = null; // To store the authenticated user's ID
+        let firebaseReady = false; // Flag to indicate Firebase is ready
+        let currentCategoryFilter = 'Todos'; // Default category filter
+
+        // Get references to HTML elements
+        const addProductForm = document.getElementById('addProductForm');
+        const productsContainer = document.getElementById('productsContainer');
+        const whatsappModal = document.getElementById('whatsappModal');
+        const closeButton = whatsappModal.querySelector('.close-button');
+        const confirmWhatsappButton = document.getElementById('confirmWhatsapp');
+        const cancelWhatsappButton = document.getElementById('cancelWhatsapp');
+        const modalProductName = document.getElementById('modalProductName');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText'); // Reference to loading text
+        const submitProductButton = document.getElementById('submitProductButton');
+        const categoryFilterContainer = document.getElementById('categoryFilterContainer');
+
+
+        // References for Gemini API features
+        const productNameInput = document.getElementById('productName'); // Added reference for product name input
+        const productDescriptionTextarea = document.getElementById('productDescription');
+        const enhanceDescriptionButton = document.getElementById('enhanceDescriptionButton'); // Corrected from document() to document.getElementById()
+        const generateSloganButton = document.getElementById('generateSloganButton');
+        const sloganDisplay = document.getElementById('sloganDisplay'); 
+        const suggestProductNameButton = document.getElementById('suggestProductNameButton'); // New button reference
+        const productFaqTextarea = document.getElementById('productFaq'); // NEW FAQ textarea reference
+        const generateFaqButton = document.getElementById('generateFaqButton'); // New button reference
+
+        // NEW: Auto-fill AI elements
+        const autoFillProductButton = document.getElementById('autoFillProductButton');
+        const autoFillModal = document.getElementById('autoFillModal');
+        const autoFillModalClose = document.getElementById('autoFillModalClose');
+        const autoFillPromptTextarea = document.getElementById('autoFillPromptTextarea');
+        const userContactNumberInput = document.getElementById('userContactNumber'); // NEW: User's contact number input
+        const userProductPriceInput = document.getElementById('userProductPrice');     // NEW: User's product price input
+        const confirmAutoFillButton = document.getElementById('confirmAutoFill');
+        const cancelAutoFillButton = document.getElementById('cancelAutoFill');
+
+
+        // References for the generic message modal
+        const messageModal = document.getElementById('messageModal');
+        const messageModalClose = document.getElementById('messageModalClose');
+        const messageModalTitle = document.getElementById('messageModalTitle');
+        const messageModalText = document.getElementById('messageModalText'); 
+        const messageModalConfirm = document.getElementById('messageModalConfirm');
+
+        // NEW: References for Dynamic Info Modal
+        const dynamicInfoModal = document.getElementById('dynamicInfoModal');
+        const dynamicInfoModalClose = document.getElementById('dynamicInfoModalClose');
+        const dynamicInfoModalTitle = document.getElementById('dynamicInfoModalTitle');
+        const dynamicInfoModalBody = document.getElementById('dynamicInfoModalBody');
+        const dynamicInfoModalConfirm = document.getElementById('dynamicInfoModalConfirm');
+        const aboutAppButton = document.getElementById('aboutAppButton');
+
+        // NEW: Daily Modal elements
+        const dailyModal = document.getElementById('dailyModal');
+        const dailyModalTitle = document.getElementById('dailyModalTitle');
+        const dailyModalUpdateTitle = document.getElementById('dailyModalUpdateTitle'); // NEW: Reference for Update Notes Title
+        const dailyModalDate = document.getElementById('dailyModalDate');
+        const dailyModalImage = document.getElementById('dailyModalImage');
+        const dailyModalContent = document.getElementById('dailyModalContent');
+        const dailyModalClose = document.getElementById('dailyModalClose');
+        const dailyModalConfirm = document.getElementById('dailyModalConfirm'); // Reference to the specific confirm button
+
+        // Reemplaza estos valores por los de tu proyecto Supabase
+const SUPABASE_URL = 'https://ysbrausivhmwukttuuvu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzYnJhdXNpdmhtd3VrdHR1dXZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0MzU0MjIsImV4cCI6MjA2NzAxMTQyMn0.x-cbHth6KdCQQbUhXXL-r7GzIq3MNgBEQ-IOeQaw5Bs';
+
+// Por estas dos líneas:
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // NUEVO: Overlay de loading para Ollama
+const ollamaLoadingOverlay = document.getElementById('ollamaLoadingOverlay');
+
+// Función para mostrar/ocultar el overlay de loading de Ollama
+function showOllamaLoading(show = true) {
+    if (show) {
+        ollamaLoadingOverlay.style.display = 'flex';
+    } else {
+        ollamaLoadingOverlay.style.display = 'none';
+    }
+}
+
+const OLLAMA_BACKEND_URL = "https://tu-backend.com/api/generate"; // Cambia por tu URL real
+
+async function callOllamaGemma(prompt, loadingMessage = "Generando con IA...") {
+    showOllamaLoading(true);
+    try {
+        const response = await fetch(OLLAMA_BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'gemma3:1b',
+                prompt: prompt,
+                stream: false
+            })
+        });
+        if (!response.ok) {
+            throw new Error('No se pudo conectar con el backend de Ollama.');
+        }
+        const data = await response.json();
+        return data.response || '';
+    } catch (error) {
+        showMessageModal("Error de IA", error.message || "No se pudo generar el contenido con Ollama.");
+        return null;
+    } finally {
+        showOllamaLoading(false);
+    }
+}
+    
+// 1. Cambia la definición de la base Dexie para incluir el índice compuesto
+const dbDexie = new Dexie("NatMarketDB");
+dbDexie.version(2).stores({
+    users: "++id, [name+code], email, password", // índice compuesto [name+code]
+    products: "++id, name, description, price, contactNumber, category, condition, faq, imageUrl, timestamp, publisherName, publisherCode"
+});
+
+
+// 2. Corrige la función de loginUser y registerUser para que siempre requiera nombre al registrar y valide correctamente
+async function registerUser({ name, code, email, password }) {
+    if (!name) throw new Error("El nombre es obligatorio para registrarse.");
+    if (email && password) {
+        const exists = await dbDexie.users.where({ email }).first();
+        if (exists) throw new Error("Ya existe un usuario con ese email.");
+        await dbDexie.users.add({ name, email, password });
+        return { name, email };
+    } else if (name && code) {
+        const exists = await dbDexie.users.where("[name+code]").equals([name, code]).first();
+        if (exists) throw new Error("Ya existe un usuario con ese nombre y código.");
+        await dbDexie.users.add({ name, code });
+        return { name, code };
+    }
+    throw new Error("Debes completar nombre y código o email y contraseña.");
+}
+
+async function loginUser({ name, code, email, password }) {
+    if (email && password) {
+        const user = await dbDexie.users.where({ email, password }).first();
+        if (!user) throw new Error("Email/contraseña incorrectos.");
+        return user;
+    } else if (name && code) {
+        const user = await dbDexie.users.where("[name+code]").equals([name, code]).first();
+        if (!user) throw new Error("Nombre/código incorrectos.");
+        return user;
+    }
+    throw new Error("Debes completar nombre y código o email y contraseña.");
+}
+
+// Guardar producto
+async function saveProduct(product) {
+    const { data, error } = await supabase.from('products').insert([product]);
+    if (error) throw error;
+    return data;
+}
+
+// Obtener todos los productos (ordenados por fecha)
+async function getProducts() {
+    const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('timestamp', { ascending: false });
+    if (error) throw error;
+    return data;
+}
+
+// Eliminar producto (solo si es del usuario)
+async function deleteProduct(productId, publisherCode) {
+    // Solo elimina si el publisher_code coincide
+    const { data, error } = await supabase
+        .from('products')
+        .delete()
+        .match({ id: productId, publisher_code: publisherCode });
+    if (error) throw error;
+    return data;
+}
+
+// 3. Corrige el formulario de login para que el nombre sea obligatorio en ambos métodos
+function showLoginModal() {
+    showDynamicInfoModal(
+        "Iniciar Sesión o Registrarse",
+        `
+        <form id="localLoginForm" class="space-y-4">
+            <div>
+                <label>Nombre especial <span class="text-red-500">*</span></label>
+                <input type="text" id="loginName" class="block w-full" placeholder="Tu nombre especial" required>
+            </div>
+            <div>
+                <label>Código de usuario</label>
+                <input type="text" id="loginCode" class="block w-full" placeholder="Tu código único">
+            </div>
+            <div class="text-center text-xs text-gray-500">O usa tu correo y contraseña</div>
+            <div>
+                <input type="email" id="loginEmail" class="block w-full" placeholder="Correo electrónico">
+                <input type="password" id="loginPassword" class="block w-full" placeholder="Contraseña">
+            </div>
+            <button type="submit" class="btn-modern w-full">Entrar / Registrar</button>
+        </form>
+        `,
+        'Entrar'
+    );
+    setTimeout(() => {
+        document.getElementById('localLoginForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('loginName').value.trim();
+            const code = document.getElementById('loginCode').value.trim();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            try {
+                let user;
+                if (email && password) {
+                    if (!name) {
+                        showMessageModal("Nombre requerido", "Debes ingresar tu nombre para registrarte o iniciar sesión.");
+                        return;
+                    }
+                    try {
+                        user = await loginUser({ name, email, password });
+                    } catch {
+                        user = await registerUser({ name, email, password });
+                    }
+                } else if (name && code) {
+                    try {
+                        user = await loginUser({ name, code });
+                    } catch {
+                        user = await registerUser({ name, code });
+                    }
+                } else {
+                    showMessageModal("Datos requeridos", "Completa nombre y código o email y contraseña.");
+                    return;
+                }
+                localStorage.setItem('natmarket_user', JSON.stringify(user));
+                showMessageModal("Sesión iniciada", `Bienvenido/a, ${user.name || user.email}!`);
+                dynamicInfoModal.style.display = 'none';
+                loadAndDisplayProducts();
+            } catch (err) {
+                showMessageModal("Error", err.message);
+            }
+        };
+    }, 100);
+}
+
+
+        let currentWhatsappNumber = ''; // To store the number for the modal
+        let currentProductTitle = ''; // To store the product title for the modal
+
+        // Function to show a generic message modal (for errors/success)
+        function showMessageModal(title, text) {
+            messageModalTitle.textContent = title;
+            messageModalText.textContent = text;
+            messageModal.style.display = 'flex'; // Make it visible
+        }
+
+        // Event listeners for the generic message modal
+        messageModalClose.addEventListener('click', () => {
+            messageModal.style.display = 'none'; // Hide it
+        });
+
+        messageModalConfirm.addEventListener('click', () => {
+            messageModal.style.display = 'none'; // Hide it
+        });
+
+        // Function to show the Dynamic Info Modal
+        function showDynamicInfoModal(title, content, confirmButtonText = 'Aceptar', onConfirmCallback = null) {
+            dynamicInfoModalTitle.textContent = title;
+            dynamicInfoModalBody.innerHTML = content; // Use innerHTML to allow for basic formatting if needed
+            dynamicInfoModalConfirm.textContent = confirmButtonText;
+
+            // Clear previous event listener to prevent multiple calls
+            dynamicInfoModalConfirm.onclick = null;
+            if (onConfirmCallback) {
+                dynamicInfoModalConfirm.onclick = () => {
+                    onConfirmCallback();
+                    dynamicInfoModal.style.display = 'none'; // Close modal after action
+                };
+            } else {
+                // Default behavior if no callback is provided
+                dynamicInfoModalConfirm.onclick = () => {
+                    dynamicInfoModal.style.display = 'none';
+                };
+            }
+            dynamicInfoModal.style.display = 'flex';
+        }
+
+        // Event listener for the Dynamic Info Modal close button
+        dynamicInfoModalClose.addEventListener('click', () => {
+            dynamicInfoModal.style.display = 'none';
+        });
+
+        // Example usage for the "Acerca de la App" button
+        aboutAppButton.addEventListener('click', () => {
+            const aboutTitle = "Acerca de NatMarket";
+            const aboutContent = `
+                <p>Esta es una aplicación de ejemplo para la compra y venta de productos, desarrollada para demostrar funcionalidades web modernas.</p>
+                <p class="mt-2">Características clave:</p>
+                <ul class="list-disc list-inside text-left mx-auto max-w-xs">
+                    <li>Publicación de productos con descripción, precio, estado y preguntas frecuentes.</li>
+                    <li>Subida de imágenes (usando Cloudinary para mayor capacidad).</li>
+                    <li>Integración con la API de Gemini para:
+                        <ul class="list-circle list-inside ml-4">
+                            <li>Mejorar descripciones.</li>
+                            <li>Generar eslóganes.</li>
+                            <li>Sugerir nombres de producto.</li>
+                            <li>Generar preguntas frecuentes (FAQ).</li>
+                        </ul>
+                    </li>
+                    <li>Contacto con vendedores vía WhatsApp.</li>
+                </ul>
+                <p class="mt-4 text-sm text-gray-700">Versión: 1.0</p>
+            `;
+            showDynamicInfoModal(aboutTitle, aboutContent, 'Entendido');
+        });
+
+
+
+
+        // Function to copy user ID to clipboard
+        window.copyUserId = function() {
+            const userIdText = document.getElementById('userIdDisplay').textContent;
+            if (userIdText && userIdText !== "Cargando..." && userIdText !== "Error al obtener ID.") {
+                const textArea = document.createElement("textarea");
+                textArea.value = userIdText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    console.log('ID de usuario copiado al portapapeles!');
+                    const copyButton = document.querySelector('#userIdDisplay + button');
+                    copyButton.innerHTML = '<i class="fas fa-check text-green-500"></i>';
+                    setTimeout(() => {
+                        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                } catch (err) {
+                    console.error('No se pudo copiar el ID de usuario: ', err);
+                    showMessageModal("Error al Copiar", "No se pudo copiar el ID de usuario al portapapeles.");
+                }
+                document.body.removeChild(textArea);
+            }
+        };
+
+        // Function to copy App ID to clipboard
+        window.copyAppId = function() {
+            const appIdText = document.getElementById('appIdDisplay').textContent;
+            if (appIdText && appIdText !== "Cargando...") {
+                const textArea = document.createElement("textarea");
+                textArea.value = appIdText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    console.log('App ID copiado al portapapeles!');
+                    const copyButton = document.querySelector('#appIdDisplay + button');
+                    copyButton.innerHTML = '<i class="fas fa-check text-green-500"></i>';
+                    setTimeout(() => {
+                        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                } catch (err) {
+                    console.error('No se pudo copiar el App ID: ', err);
+                    showMessageModal("Error al Copiar", "No se pudo copiar el App ID al portapapeles.");
+                }
+                document.body.removeChild(textArea);
+            }
+        };
+
+// Asegúrate de que el usuario esté siempre en localStorage y que el objeto tenga SIEMPRE name y code/email
+function getCurrentUser() {
+    const userStr = localStorage.getItem('natmarket_user');
+    if (!userStr) return null;
+    try {
+        const user = JSON.parse(userStr);
+        // Normaliza el usuario para que siempre tenga name y code/email
+        if (user && user.name && (user.code || user.email)) {
+            return user;
+        }
+    } catch (e) {}
+    return null;
+}
+
+// Usa getCurrentUser() en vez de leer localStorage directamente en displayProducts y en eventos
+function displayProducts(products) {
+    productsContainer.innerHTML = '';
+    const user = getCurrentUser();
+    if (products.length === 0) {
+        productsContainer.innerHTML = `
+            <div class="col-span-full text-center text-gray-500 py-8">
+                <i class="fas fa-box-open text-5xl mb-4"></i>
+                <p class="text-xl">No hay productos disponibles aún para esta categoría. ¡Sé el primero en publicar!</p>
+            </div>
+        `;
+        return;
+    }
+    products.forEach(product => {
+        const imageUrl = product.image_url || product.imageUrl || `https://placehold.co/400x300/cbd5e0/475569?text=Sin+Imagen`;
+        const canDelete = user && (
+            (product.publisher_code && user.code && product.publisher_code === user.code) ||
+            (product.publisher_code && user.email && product.publisher_code === user.email)
+        );
+        const publisher = product.publisher_name
+            ? `<div class="publisher"><i class="fas fa-user"></i> ${product.publisher_name}</div>`
+            : '';
+        const deleteBtn = canDelete
+            ? `<button class="btn-delete-product" data-id="${product.id}"><i class="fas fa-trash-alt"></i>Eliminar</button>`
+            : '';
+        const productCard = `
+            <div class="product-card">
+                <div class="product-image-container">
+                    <img src="${imageUrl}" alt="Imagen de ${product.name}" class="product-image"
+                        onerror="this.onerror=null;this.src='https://placehold.co/400x300/cbd5e0/475569?text=Error+Imagen';" />
+                </div>
+                <div class="product-content">
+                    ${publisher}
+                    <h3 class="font-bold text-indigo-800">${product.name || 'Sin nombre'}</h3>
+                    <p class="text-xs text-gray-500 mb-2">Categoría: ${product.category || 'Sin categoría'}</p>
+                    <p class="text-xs text-gray-500 mb-2">Estado: ${product.condition || 'No especificado'}</p>
+                    ${product.faq ? `<div class="text-xs text-gray-700 mt-2"><strong>FAQ:</strong><br>${product.faq.replace(/\n/g, '<br>')}</div>` : ''}
+                    <p class="description">${product.description || ''}</p>
+                    <p class="price">$${product.price !== undefined && !isNaN(product.price) ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
+                    <button data-number="${product.contact_number || product.contactNumber}" data-name="${product.name}"
+                        class="btn-modern w-full mt-auto">
+                        <i class="fab fa-whatsapp mr-2"></i>Comprar por WhatsApp
+                    </button>
+                    ${deleteBtn}
+                </div>
+            </div>
+        `;
+        productsContainer.insertAdjacentHTML('beforeend', productCard);
+    });
+
+    // Botón eliminar producto
+    document.querySelectorAll('.btn-delete-product').forEach(btn => {
+        btn.onclick = async function() {
+            const productId = Number(btn.getAttribute('data-id'));
+            const user = getCurrentUser();
+            if (await deleteProduct(productId, user.code || user.email)) {
+                showMessageModal("Eliminado", "Producto eliminado correctamente.");
+                loadAndDisplayProducts();
+            } else {
+                showMessageModal("Error", "No puedes eliminar productos que no son tuyos.");
+            }
+        };
+    });
+
+    // Botón WhatsApp
+    document.querySelectorAll('.btn-modern.w-full').forEach(button => {
+        button.addEventListener('click', (event) => {
+            currentWhatsappNumber = event.currentTarget.dataset.number;
+            currentProductTitle = event.currentTarget.dataset.name;
+            whatsappModal.style.display = 'flex';
+        });
+    });
+}
+    // 5. Al cargar la página, si hay usuario en localStorage, NO pedir login de nuevo
+document.addEventListener('DOMContentLoaded', () => {
+    const userStr = localStorage.getItem('natmarket_user');
+    if (!userStr) {
+        showLoginModal();
+    } else {
+        loadAndDisplayProducts();
+    }
+});
+
+
+
+        // Function to call Gemini API for text generation
+        async function callGeminiAPI(prompt, loadingMessage, responseSchema = null) {
+            loadingText.textContent = loadingMessage;
+            loadingOverlay.style.display = 'flex';
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            
+            const payload = { contents: chatHistory };
+            if (responseSchema) {
+                payload.generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                };
+            }
+
+            // Use the geminiApiKey for local development, otherwise it will be an empty string
+            // and Canvas will provide the key at runtime.
+            const apiKeyToUse = (typeof __app_id !== 'undefined') ? "" : geminiApiKey;
+
+            // --- DEBUGGING API KEY ---
+            console.log("DEBUG: API Key being used for Gemini API call:", apiKeyToUse ? "Key present" : "Key is empty/undefined");
+            if (!apiKeyToUse && typeof __app_id === 'undefined') {
+                 console.error("DEBUG: API Key is empty for local development. Please ensure 'geminiApiKey' is set in the code.");
+                 showMessageModal("Error de Configuración", "La clave de API de Gemini está vacía. Asegúrate de pegarla en la sección de configuración para desarrollo local.");
+                 loadingOverlay.style.display = 'none';
+                 return null;
+            }
+            // --- END DEBUGGING ---
+
+            // *** CORRECCIÓN CRÍTICA AQUÍ: USAR apiKeyToUse EN LA URL ***
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyToUse}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const textResponse = result.candidates[0].content.parts[0].text;
+                    if (responseSchema) {
+                        try {
+                            return JSON.parse(textResponse);
+                        } catch (e) {
+                            console.error("Error parsing JSON response from Gemini API:", e, textResponse);
+                            showMessageModal("Error de IA", "La IA no devolvió un formato JSON válido. Inténtalo de nuevo.");
+                            return null;
+                        }
+                    }
+                    return textResponse;
+                } else {
+                    console.error("Gemini API response structure unexpected:", result);
+                    // Check for specific error messages from Gemini API
+                    if (result.error && result.error.message) {
+                        showMessageModal("Error de IA", `No se pudo obtener una respuesta de la IA. Detalles: ${result.error.message}`);
+                    } else {
+                        showMessageModal("Error de IA", "No se pudo obtener una respuesta de la IA. Inténtalo de nuevo.");
+                    }
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                showMessageModal("Error de Conexión", "No se pudo conectar con la IA. Verifica tu conexión a internet.");
+                return null;
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+
+// Mejorar Descripción
+enhanceDescriptionButton.addEventListener('click', async () => {
+    const productName = productNameInput.value;
+    const productDescription = productDescriptionTextarea.value;
+
+    if (!productName || !productDescription) {
+        showMessageModal("Campos Requeridos", "Por favor, ingresa el Nombre del Producto y una Descripción inicial para mejorarla.");
+        return;
+    }
+
+    const prompt = `Mejora y expande la siguiente descripción de producto para que sea más atractiva y detallada para un mercado en línea. El producto es: "${productName}". Descripción actual: "${productDescription}"`;
+    const enhancedDescription = await callOllamaGemma(prompt, "Mejorando descripción...");
+
+    if (enhancedDescription) {
+        productDescriptionTextarea.value = enhancedDescription;
+        showMessageModal("Descripción Mejorada", "La descripción del producto ha sido mejorada por la IA.");
+    }
+});
+
+// Generar Eslogan
+generateSloganButton.addEventListener('click', async () => {
+    const productName = productNameInput.value;
+    const productDescription = productDescriptionTextarea.value;
+
+    if (!productName || !productDescription) {
+        showMessageModal("Campos Requeridos", "Por favor, ingresa el Nombre del Producto y la Descripción para generar un eslogan.");
+        return;
+    }
+
+    const prompt = `Genera un eslogan de marketing corto y pegadizo para el siguiente producto. El producto es: "${productName}". Descripción: "${productDescription}"`;
+    const slogan = await callOllamaGemma(prompt, "Generando eslogan...");
+
+    if (slogan) {
+        sloganDisplay.textContent = `"${slogan}"`;
+        showMessageModal("Eslogan Generado", "La IA ha generado un eslogan para tu producto.");
+    }
+});
+
+// Sugerir Nombre de Producto
+suggestProductNameButton.addEventListener('click', async () => {
+    const productDescription = productDescriptionTextarea.value;
+
+    if (!productDescription) {
+        showMessageModal("Descripción Requerida", "Por favor, ingresa una Descripción para que la IA pueda sugerir nombres.");
+        return;
+    }
+
+    const prompt = `Sugiere 3-5 nombres de producto creativos y atractivos para un producto con la siguiente descripción: "${productDescription}". Presenta la respuesta como una lista numerada.`;
+    const suggestedNames = await callOllamaGemma(prompt, "Sugiriendo nombres de producto...");
+
+    if (suggestedNames) {
+        showDynamicInfoModal("Nombres Sugeridos", suggestedNames, 'Usar Nombre Sugerido', () => {
+            // Aquí puedes agregar lógica para seleccionar un nombre si lo deseas
+        });
+    }
+});
+
+// Generar FAQ
+generateFaqButton.addEventListener('click', async () => {
+    const productName = productNameInput.value;
+    const productDescription = productDescriptionTextarea.value;
+
+    if (!productName || !productDescription) {
+        showMessageModal("Campos Requeridos", "Por favor, ingresa el Nombre del Producto y la Descripción para generar preguntas frecuentes.");
+        return;
+    }
+
+    const prompt = `Genera 3-5 preguntas frecuentes (FAQ) y sus respuestas concisas para el producto "${productName}" con la siguiente descripción: "${productDescription}". Formatea la respuesta como una lista de preguntas y respuestas, por ejemplo:
+P: ¿Pregunta?
+R: Respuesta.
+`;
+    const generatedFaq = await callOllamaGemma(prompt, "Generando preguntas frecuentes...");
+
+    if (generatedFaq) {
+        productFaqTextarea.value = generatedFaq;
+        showMessageModal("Preguntas Frecuentes Generadas", "Las preguntas frecuentes han sido generadas y colocadas en el campo.");
+    }
+});
+
+
+        // NEW: Auto-fill product fields with AI
+        autoFillProductButton.addEventListener('click', () => {
+            autoFillModal.style.display = 'flex'; // Show the auto-fill modal
+            autoFillPromptTextarea.value = ''; // Clear previous prompt
+            userContactNumberInput.value = ''; // Clear previous contact number
+            userProductPriceInput.value = ''; // Clear previous price
+            autoFillPromptTextarea.focus();
+        });
+
+        autoFillModalClose.addEventListener('click', () => {
+            autoFillModal.style.display = 'none';
+        });
+
+        cancelAutoFillButton.addEventListener('click', () => {
+            autoFillModal.style.display = 'none';
+        });
+
+// ...existing code...
+
+// Auto-fill con IA (Ollama)
+confirmAutoFillButton.addEventListener('click', async () => {
+    const userPrompt = autoFillPromptTextarea.value.trim();
+    const contactNumber = userContactNumberInput.value.trim();
+    const productPrice = parseFloat(userProductPriceInput.value);
+
+    if (!userPrompt || !contactNumber || isNaN(productPrice)) {
+        showMessageModal("Campos Requeridos", "Por favor, describe el producto y proporciona tu número de contacto y un precio deseado.");
+        return;
+    }
+
+    autoFillModal.style.display = 'none'; // Hide the modal
+
+    const prompt = `Genera los siguientes detalles para un producto basado en la descripción: "${userPrompt}".
+El número de contacto proporcionado es: "${contactNumber}".
+El precio deseado es: "${productPrice}".
+El estado del producto debe ser uno de: "Nuevo", "Como Nuevo", "Usado", "Para Partes".
+La respuesta debe ser SOLO un objeto JSON válido, sin explicaciones ni texto adicional, con las claves: productName, productDescription, productCategory, productCondition, productFaq.`;
+
+    const response = await callOllamaGemma(prompt, "Ocean AI está generando tu producto...");
+
+    if (response) {
+        // Intenta extraer el JSON aunque venga con texto adicional
+        let generatedProduct = null;
+        let jsonMatch = response.match(/\{[\s\S]*\}/);
+        try {
+            generatedProduct = JSON.parse(jsonMatch ? jsonMatch[0] : response);
+        } catch (e) {
+            showMessageModal("Error de IA", "La IA no devolvió un formato JSON válido. Inténtalo de nuevo.");
+            return;
+        }
+        productNameInput.value = generatedProduct.productName || '';
+        productDescriptionTextarea.value = generatedProduct.productDescription || '';
+        document.getElementById('productPrice').value = productPrice;
+        document.getElementById('contactNumber').value = contactNumber;
+        document.getElementById('productCategory').value = generatedProduct.productCategory || '';
+        document.getElementById('productCondition').value = generatedProduct.productCondition || '';
+        productFaqTextarea.value = generatedProduct.productFaq || '';
+        showMessageModal("Producto Generado", "Los campos del producto han sido rellenados por Ocean AI.");
+    } else {
+        showMessageModal("Error de Generación", "No se pudo generar el producto. Inténtalo de nuevo.");
+    }
+});
+
+
+
+// 1. Elimina toda la lógica de Firestore para productos (addDoc, onSnapshot, collection, etc.)
+// 2. Usa solo Supabase para guardar y cargar productos
+
+// Guardar producto en Supabase (con imagen en Cloudinary)
+addProductForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const name = addProductForm.productName.value.trim();
+    const description = addProductForm.productDescription.value.trim();
+    const price = parseFloat(addProductForm.productPrice.value);
+    const contactNumber = addProductForm.contactNumber.value.trim();
+    const category = addProductForm.productCategory.value.trim();
+    const condition = addProductForm.productCondition.value;
+    const faq = addProductForm.productFaq.value.trim();
+    const productImageFile = addProductForm.productImage.files[0];
+
+    if (!name || !description || isNaN(price) || !contactNumber || !category || !condition) {
+        showMessageModal("Campos Incompletos", "Por favor, completa todos los campos obligatorios (Nombre, Descripción, Precio, Contacto, Categoría, Estado).");
+        return;
+    }
+
+    loadingText.textContent = "Subiendo producto...";
+    loadingOverlay.style.display = 'flex';
+    submitProductButton.disabled = true;
+
+    let imageUrl = null;
+    if (productImageFile) {
+        if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUDINARY_CLOUD_NAME' ||
+            !CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_UPLOAD_PRESET === 'YOUR_CLOUDINARY_UPLOAD_PRESET') {
+            showMessageModal("Error de Configuración", "Por favor, configura tu Cloudinary Cloud Name y Upload Preset en el código JavaScript.");
+            loadingOverlay.style.display = 'none';
+            submitProductButton.disabled = false;
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', productImageFile);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+        try {
+            loadingText.textContent = "Subiendo imagen a Cloudinary...";
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                showMessageModal("Error de Subida de Imagen", `No se pudo subir la imagen a Cloudinary. Detalles: ${errorData.error ? errorData.error.message : 'Error desconocido'}`);
+                loadingOverlay.style.display = 'none';
+                submitProductButton.disabled = false;
+                return;
+            }
+
+            const data = await response.json();
+            imageUrl = data.secure_url;
+        } catch (e) {
+            showMessageModal("Error de Conexión", "No se pudo conectar con Cloudinary para subir la imagen. Verifica tu conexión a internet.");
+            loadingOverlay.style.display = 'none';
+            submitProductButton.disabled = false;
+            return;
+        }
+    }
+
+    // Obtén el usuario logueado
+    const userStr = localStorage.getItem('natmarket_user');
+   
+    if (userStr) {
+        try { user = JSON.parse(userStr); } catch (e) { user = null; }
+    }
+      const user = getCurrentUser();
+    if (!user || !user.name) {
+        showMessageModal("Error", "Debes iniciar sesión con un nombre para publicar productos.");
+        loadingOverlay.style.display = 'none';
+        submitProductButton.disabled = false;
+        return;
+    }
+
+    const product = {
+        name,
+        description,
+        price,
+        contact_number: contactNumber,
+        category,
+        condition,
+        faq,
+        image_url: imageUrl,
+        timestamp: new Date().toISOString(),
+        publisher_name: user.name,
+        publisher_code: user.code || user.email
+    };
+
+    try {
+        await saveProduct(product);
+        showMessageModal("Éxito", "¡Producto publicado con éxito!");
+        addProductForm.reset();
+        sloganDisplay.textContent = '';
+        productFaqTextarea.value = '';
+        loadAndDisplayProducts();
+    } catch (e) {
+        showMessageModal("Error de Publicación", "Error al publicar el producto en Supabase. Inténtalo de nuevo.");
+    } finally {
+        loadingOverlay.style.display = 'none';
+        submitProductButton.disabled = false;
+    }
+});
+
+// Category Filter Buttons Event Listeners
+categoryFilterContainer.addEventListener('click', (event) => {
+    if (event.target.classList.contains('category-filter-button')) {
+        const selectedCategory = event.target.dataset.category;
+        setActiveCategoryButton(selectedCategory);
+        currentCategoryFilter = selectedCategory;
+        // Reemplaza setupFirestoreListener por filtrado local de productos usando Supabase
+        loadAndDisplayProductsByCategory(selectedCategory);
+    }
+});
+
+// Nueva función para filtrar productos por categoría usando Supabase
+async function loadAndDisplayProductsByCategory(category) {
+    try {
+        let products;
+        if (category === 'Todos') {
+            products = await getProducts();
+        } else {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('category', category)
+                .order('timestamp', { ascending: false });
+            if (error) throw error;
+            products = data;
+        }
+        displayProducts(products);
+    } catch (e) {
+        productsContainer.innerHTML = `
+            <div class="col-span-full text-center text-red-500 py-8">
+                <i class="fas fa-exclamation-triangle text-5xl mb-4"></i>
+                <p class="text-xl">Error al filtrar productos. Por favor, recarga la página o verifica tu conexión.</p>
+            </div>
+        `;
+        showMessageModal("Error de Filtro", "Error al filtrar productos. Por favor, recarga la página o verifica tu conexión.");
+    }
+}
+        // Function to set the active state on category buttons
+        function setActiveCategoryButton(category) {
+            document.querySelectorAll('.category-filter-button').forEach(button => {
+                button.classList.remove('active');
+                if (button.dataset.category === category) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+
+        // Modal close functionality for WhatsApp modal
+        closeButton.addEventListener('click', () => {
+            whatsappModal.style.display = 'none';
+        });
+
+        cancelWhatsappButton.addEventListener('click', () => {
+            whatsappModal.style.display = 'none';
+        });
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.addEventListener('click', (event) => {
+            if (event.target == whatsappModal) {
+                whatsappModal.style.display = 'none';
+            } else if (event.target == messageModal) {
+                messageModal.style.display = 'none';
+            } else if (event.target == dynamicInfoModal) {
+                dynamicInfoModal.style.display = 'none';
+            } else if (event.target == autoFillModal) {
+                autoFillModal.style.display = 'none';
+            } else if (event.target == dailyModal) { // NEW: Close dailyModal
+                dailyModal.style.display = 'none';
+            }
+        });
+
+        // Confirm WhatsApp redirection
+        confirmWhatsappButton.addEventListener('click', () => {
+            if (currentWhatsappNumber) {
+                let formattedNumber = currentWhatsappNumber.replace(/\D/g, '');
+                const whatsappMessage = encodeURIComponent(`Hola, estoy interesado en tu producto: ${currentProductTitle}.`);
+                const whatsappUrl = `https://wa.me/${formattedNumber}?text=${whatsappMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
+            whatsappModal.style.display = 'none';
+        });
+
+// ...existing code...
+
+// Function to show the daily modal
+function showDailyModal() {
+    // FECHA PUBLICADA FIJA (no la actual)
+    const publishedDate = "2 de Julio de 2025, 03:31"; // <-- Cambia aquí la fecha de publicación real
+
+    // --- CATEGORÍAS DE NOTAS DE ACTUALIZACIÓN ---
+    // Puedes editar/agregar más bloques <div> según tus necesidades
+    const updateNotes = `
+        <div>
+            <span class="update-tag eliminado">Eliminado</span>
+            <b>Eliminacion de Firebase</b> Firebase no fue suficiente, ahora usamos Supabase para almacenar productos y Cloudinary como siempre para imágenes.
+        </div>
+        <div>
+            <span class="update-tag mejora">Mejora</span>
+            <b>Inicio de Sesion y Registro (Auth)</b> Ahora se puede iniciar sesion y registrar con Email y Contraseña o con Nombre y Código de Usuario. Es necesario un nombre porque asi la gente cuando vendas, como vendedor te reconozcan.
+        </div>
+        <div>
+            <span class="update-tag mejora">Mejora</span>
+           El <b>Titulo</b> abajo del header se adapto a la responsividad movil.
+        </div>
+    `;
+
+    // --- CONTENIDO PRINCIPAL DEL MODAL ---
+    const mainContent = `
+        <p>Te presentamos las notas de actualizacion de NatMarket, este fue el segundo parche, se viene otro pronto.</p>
+        <p class="mt-2">A continuación, las notas de actualización:</p>
+        <div class="mt-2 mb-2">${updateNotes}</div>
+        <p class="mt-2">Si tienes sugerencias o necesitas ayuda, contáctanos. ¡Gracias por ser parte de la comunidad!</p>
+    `;
+
+    // Mostrar el modal con la fecha FIJA y el contenido mejorado
+    dailyModalTitle.textContent = "Notas de Actualización";
+    dailyModalUpdateTitle.textContent = "Parche de Notas N°2";
+    dailyModalDate.textContent = publishedDate;
+    dailyModalImage.src = "https://placehold.co/400x200/28a745/ffffff?text=NatMarket+Updates";
+    dailyModalContent.innerHTML = mainContent;
+
+    dailyModal.style.display = 'flex';
+    // Guardar la hora de visualización para el control de aparición diaria
+    localStorage.setItem('dailyModalLastShown', Date.now().toString());
+}
+
+
+
+        // Event listeners for the daily modal (specific to its unique class)
+        dailyModalClose.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent event bubbling
+            dailyModal.style.display = 'none';
+            console.log("Modal diario cerrado por botón de cierre (X).");
+        });
+
+        dailyModalConfirm.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent event bubbling
+            dailyModal.style.display = 'none';
+            console.log("Modal diario cerrado por botón '¡Entendido!'.");
+        });
+
+// Cargar productos desde Supabase (no Firestore)
+async function loadAndDisplayProducts() {
+    try {
+        const products = await getProducts();
+        displayProducts(products);
+    } catch (e) {
+        productsContainer.innerHTML = `
+            <div class="col-span-full text-center text-red-500 py-8">
+                <i class="fas fa-exclamation-triangle text-5xl mb-4"></i>
+                <p class="text-xl">Error al cargar productos. Por favor, recarga la página o verifica tu conexión.</p>
+            </div>
+        `;
+        showMessageModal("Error de Carga", "Error al cargar productos. Por favor, recarga la página o verifica tu conexión.");
+    }
+}
+
+// --- CORRECCIÓN 3: Usar getCurrentUser() en el evento de borrado global ---
+document.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('btn-delete-product')) {
+        const productId = Number(e.target.dataset.id);
+        const user = getCurrentUser();
+        try {
+            await deleteProduct(productId, user.code || user.email);
+            showMessageModal("Eliminado", "Producto eliminado correctamente.");
+            loadAndDisplayProducts();
+        } catch {
+            showMessageModal("Error", "No puedes eliminar productos que no son tuyos.");
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const user = getCurrentUser();
+    if (!user) {
+        showLoginModal();
+    } else {
+        // Si tienes un elemento para mostrar el usuario, actualízalo aquí
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        if (userIdDisplay) {
+            userIdDisplay.textContent = user.name + (user.code ? ` (${user.code})` : (user.email ? ` (${user.email})` : ''));
+        }
+        loadAndDisplayProducts();
+    }
+});
+
+        // Set App ID display and show daily modal once the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            if (appIdDisplay) {
+                appIdDisplay.textContent = appId;
+                console.log("App ID Display actualizado a:", appId);
+            }
+            showDailyModal(); // Call the daily modal function
+        });
+    </script>
+</body>
+</html>
