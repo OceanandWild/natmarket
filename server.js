@@ -344,8 +344,11 @@ app.get('/ratings/product/:product_id', async(req,res)=>{
 
     const avg = result.rows.length ? (result.rows.reduce((a,b)=>a+b.rating,0)/result.rows.length).toFixed(1) : 0;
     res.json({avg_rating:avg, ratings:result.rows});
-  }catch(err){handleServerError(res,err,'GET /ratings/product/:product_id');}
+  }catch(err){
+    handleServerError(res,err,'GET /ratings/product/:product_id');
+  }
 });
+
 
 app.get('/ratings/seller/:seller_id', async(req,res)=>{
   try{
