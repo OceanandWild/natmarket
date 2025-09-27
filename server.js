@@ -250,6 +250,27 @@ app.post('/products', upload.array('images', 10), async (req, res) => {
   }
 });
 
+// Subir imágenes adicionales a un producto existente
+app.post('/products/:id/images', upload.array('images', 10), async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const productRes = await pool.query('SELECT * FROM products WHERE id=$1', [productId]);
+    if (productRes.rowCount === 0) return res.status(404).json({ error: 'Producto no encontrado' });
+
+    if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No se subieron imágenes' });
+
+    const urls = req.files.map(f => `/uploads/${f.filename}`);
+    for (const url of urls) {
+      await pool.query('INSERT INTO product_images (product_id, url) VALUES ($1,$2)', [productId, url]);
+    }
+
+    const imagesRes = await pool.query('SELECT url FROM product_images WHERE product_id=$1 ORDER BY created_at ASC', [productId]);
+    res.json({ success: true, image_urls: imagesRes.rows.map(r => r.url) });
+  } catch (err) {
+    handleServerError(res, err, 'POST /products/:id/images');
+  }
+});
+
 
 // servir imágenes estáticas
 app.use('/uploads', express.static(uploadDir));
