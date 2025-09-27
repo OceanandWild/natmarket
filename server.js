@@ -297,9 +297,8 @@ app.get('/ratings/:product_id', async (req,res)=>{
     const result = await pool.query(`
       SELECT r.*, u.username AS rater_username
       FROM user_ratings r
-      JOIN products p ON r.rated_user_id = p.user_id
       JOIN users u ON r.rater_user_id = u.id
-      WHERE p.id=$1
+      WHERE r.product_id = $1
       ORDER BY r.created_at DESC
     `, [product_id]);
     res.json(result.rows);
@@ -307,6 +306,7 @@ app.get('/ratings/:product_id', async (req,res)=>{
     handleServerError(res,err,'GET /ratings/:product_id');
   }
 });
+
 
 // GET /user-ratings/:user_id
 app.get('/user-ratings/:user_id', async (req,res)=>{
