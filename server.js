@@ -4,6 +4,23 @@ import cors from 'cors';
 import pkg from 'pg';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+// carpeta de uploads
+const uploadDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+// configuración multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, unique + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
 
 dotenv.config();
 const { Pool } = pkg;
@@ -192,22 +209,28 @@ app.get('/messages/:product_id', async (req, res) => {
 // ------------------
 // PRODUCTS
 // ------------------
-app.post('/products', async (req, res) => {
+// subir producto con múltiples imágenes
+app.post('/products', upload.array('images', 5), async (req, res) => {
   try {
-    const { user_id, name, description = null, price = null, image_url = null, contact_number = null } = req.body;
+    const { user_id, name, description = null, price = null, contact_number = null } = req.body;
     if (!user_id || !name) return res.status(400).json({ error: 'user_id y name son requeridos' });
 
+    const urls = req.files.map(f => `/uploads/${f.filename}`);
+
     const result = await pool.query(
-      `INSERT INTO products (user_id, name, description, price, image_url, contact_number)
+      `INSERT INTO products (user_id, name, description, price, image_urls, contact_number)
        VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [user_id, name, description, price, image_url, contact_number]
+      [user_id, name, description, price, urls, contact_number]
     );
 
     res.json(result.rows[0]);
   } catch (err) {
-    handleServerError(res, err, 'POST /products');
+    handleServerError(res, err, 'POST /products con imágenes');
   }
 });
+
+// servir imágenes estáticas
+app.use('/uploads', express.static(uploadDir));
 
 app.delete('/products/:id', async (req, res) => {
   try {
