@@ -210,24 +210,40 @@ app.get('/messages/:product_id', async (req, res) => {
 // PRODUCTS
 // ------------------
 // subir producto con múltiples imágenes
-app.post('/products', upload.array('images', 5), async (req, res) => {
+app.post('/products', upload.array('images', 10), async (req, res) => {
   try {
     const { user_id, name, description = null, price = null, contact_number = null } = req.body;
     if (!user_id || !name) return res.status(400).json({ error: 'user_id y name son requeridos' });
 
-    const urls = req.files.map(f => `/uploads/${f.filename}`);
-
+    // Insertar producto primero
     const result = await pool.query(
-      `INSERT INTO products (user_id, name, description, price, image_urls, contact_number)
-       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [user_id, name, description, price, urls, contact_number]
+      `INSERT INTO products (user_id, name, description, price, contact_number)
+       VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+      [user_id, name, description, price, contact_number]
     );
+    const product = result.rows[0];
 
-    res.json(result.rows[0]);
+    // Guardar imágenes en tabla product_images
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const url = `/uploads/${file.filename}`;
+        await pool.query(
+          'INSERT INTO product_images (product_id, url) VALUES ($1,$2)',
+          [product.id, url]
+        );
+      }
+    }
+
+    // Devolver producto con array de URLs
+    const imagesRes = await pool.query('SELECT url FROM product_images WHERE product_id=$1', [product.id]);
+    product.image_urls = imagesRes.rows.map(r => r.url);
+
+    res.json(product);
   } catch (err) {
     handleServerError(res, err, 'POST /products con imágenes');
   }
 });
+
 
 // servir imágenes estáticas
 app.use('/uploads', express.static(uploadDir));
@@ -256,17 +272,27 @@ app.get('/products', async (req, res) => {
     const result = await pool.query(`
       SELECT p.*, u.username,
         COALESCE((
-          SELECT ROUND(AVG(rating)::numeric,1) FROM user_ratings WHERE rated_user_id = u.id
+          SELECT ROUND(AVG(rating)::numeric,1) 
+          FROM user_ratings 
+          WHERE rated_user_id = u.id
         ), 0) AS avg_rating
       FROM products p
       JOIN users u ON p.user_id = u.id
       ORDER BY p.created_at DESC
     `);
-    res.json(result.rows);
+
+    // Agregar array de imágenes
+    const products = await Promise.all(result.rows.map(async p => {
+      const imagesRes = await pool.query('SELECT url FROM product_images WHERE product_id=$1 ORDER BY created_at ASC', [p.id]);
+      return { ...p, image_urls: imagesRes.rows.map(r => r.url) };
+    }));
+
+    res.json(products);
   } catch (err) {
     handleServerError(res, err, 'GET /products');
   }
 });
+
 
 // ------------------
 // RATINGS
