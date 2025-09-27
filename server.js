@@ -57,6 +57,16 @@ async function initDb() {
         rating INT CHECK (rating BETWEEN 1 AND 5),
         created_at TIMESTAMP DEFAULT now()
       );
+
+  CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INT REFERENCES users(id) ON DELETE CASCADE,
+    product_id INT REFERENCES products(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
+  );
+
+
     `);
     console.log('✅ Tablas verificadas/creadas correctamente.');
   } catch (err) {
