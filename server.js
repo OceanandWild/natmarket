@@ -227,7 +227,12 @@ app.post('/products', upload.array('images', 10), async (req, res) => {
     );
     const product = result.rows[0];
 
-    const host = process.env.BACKEND_URL || 'http://localhost:4000';
+    // ejemplo para POST /products
+const urls = req.files.map(f => `${process.env.BACKEND_URL}/uploads/${f.filename}`);
+for (const url of urls) {
+  await pool.query('INSERT INTO product_images (product_id, url) VALUES ($1,$2)', [product.id, url]);
+}
+
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         const url = `${host}/uploads/${file.filename}`;
@@ -254,12 +259,13 @@ app.post('/products/:id/images', upload.array('images', 10), async (req, res) =>
 
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No se subieron imágenes' });
 
-    const host = process.env.BACKEND_URL || 'http://localhost:4000';
-    const urls = req.files.map(f => `${host}/uploads/${f.filename}`);
+const host = process.env.BACKEND_URL; // ya no fallback a localhost
+// ejemplo para POST /products
+const urls = req.files.map(f => `${process.env.BACKEND_URL}/uploads/${f.filename}`);
+for (const url of urls) {
+  await pool.query('INSERT INTO product_images (product_id, url) VALUES ($1,$2)', [product.id, url]);
+}
 
-    for (const url of urls) {
-      await pool.query('INSERT INTO product_images (product_id, url) VALUES ($1,$2)', [productId, url]);
-    }
 
     const imagesRes = await pool.query('SELECT url FROM product_images WHERE product_id=$1 ORDER BY created_at ASC', [productId]);
     res.json({ success: true, image_urls: imagesRes.rows.map(r => r.url) });
