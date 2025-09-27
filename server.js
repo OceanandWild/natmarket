@@ -297,6 +297,29 @@ app.get('/ratings/:product_id', async (req,res)=>{
   }
 });
 
+// GET /user-ratings/:user_id
+app.get('/user-ratings/:user_id', async (req,res)=>{
+  try {
+    const { user_id } = req.params;
+    const result = await pool.query(`
+      SELECT r.*, u.username AS rater_username, p.name AS product_name
+      FROM user_ratings r
+      JOIN users u ON r.rater_user_id = u.id
+      LEFT JOIN products p ON p.user_id = r.rated_user_id
+      WHERE r.rated_user_id=$1
+      ORDER BY r.created_at DESC
+    `, [user_id]);
+
+    // calcular promedio
+    const ratings = result.rows;
+    const avg = ratings.length ? (ratings.reduce((a,b)=>a+b.rating,0)/ratings.length).toFixed(1) : 0;
+
+    res.json({ avg_rating: avg, ratings });
+  } catch(err) {
+    handleServerError(res, err, 'GET /user-ratings/:user_id');
+  }
+});
+
 
 // ------------------
 // INICIO SERVIDOR
