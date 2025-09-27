@@ -338,14 +338,14 @@ app.get('/ratings/product/:product_id', async(req,res)=>{
       SELECT r.*, u.username AS rater_username
       FROM user_ratings r
       JOIN users u ON r.rater_user_id = u.id
-      WHERE r.product_id=$1 AND r.type='product'
+      WHERE r.product_id = $1 AND r.type='product'
       ORDER BY r.created_at DESC
-    `,[product_id]);
+    `, [product_id]);
 
     const avg = result.rows.length ? (result.rows.reduce((a,b)=>a+b.rating,0)/result.rows.length).toFixed(1) : 0;
-    res.json({avg_rating:avg, ratings:result.rows});
+    res.json({avg_rating: avg, ratings: result.rows});
   }catch(err){
-    handleServerError(res,err,'GET /ratings/product/:product_id');
+    handleServerError(res, err, 'GET /ratings/product/:product_id');
   }
 });
 
