@@ -228,6 +228,7 @@ app.post('/products', upload.array('images', 10), async (req, res) => {
     const product = result.rows[0];
 
     // ejemplo para POST /products
+    const host = "https://natmarket.onrender.com"; // ya no fallback a localhost
 const urls = req.files.map(f => `${process.env.BACKEND_URL}/uploads/${f.filename}`);
 for (const url of urls) {
   await pool.query('INSERT INTO product_images (product_id, url) VALUES ($1,$2)', [product.id, url]);
@@ -259,7 +260,7 @@ app.post('/products/:id/images', upload.array('images', 10), async (req, res) =>
 
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No se subieron imágenes' });
 
-const host = process.env.BACKEND_URL; // ya no fallback a localhost
+const host = "https://natmarket.onrender.com"; // ya no fallback a localhost
 // ejemplo para POST /products
 const urls = req.files.map(f => `${process.env.BACKEND_URL}/uploads/${f.filename}`);
 for (const url of urls) {
