@@ -68,6 +68,13 @@ async function initDb() {
 
 
     `);
+    await pool.query(`
+  ALTER TABLE user_ratings
+  ADD COLUMN IF NOT EXISTS comment TEXT,
+  ADD COLUMN IF NOT EXISTS product_id INT REFERENCES products(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS type VARCHAR(10) DEFAULT 'product';
+`);
+
     console.log('✅ Tablas verificadas/creadas correctamente.');
   } catch (err) {
     console.error('❌ Error inicializando DB:', err);
@@ -291,21 +298,7 @@ app.post('/rate-seller', async (req,res)=>{
 });
 
 
-app.get('/ratings/:product_id', async (req,res)=>{
-  try{
-    const { product_id } = req.params;
-    const result = await pool.query(`
-      SELECT r.*, u.username AS rater_username
-      FROM user_ratings r
-      JOIN users u ON r.rater_user_id = u.id
-      WHERE r.product_id = $1
-      ORDER BY r.created_at DESC
-    `, [product_id]);
-    res.json(result.rows);
-  } catch(err){
-    handleServerError(res,err,'GET /ratings/:product_id');
-  }
-});
+
 
 
 // GET /user-ratings/:user_id
@@ -343,12 +336,16 @@ app.get('/ratings/product/:product_id', async(req,res)=>{
       ORDER BY r.created_at DESC
     `, [product_id]);
 
-    const avg = result.rows.length ? (result.rows.reduce((a,b)=>a+b.rating,0)/result.rows.length).toFixed(1) : 0;
+    const avg = result.rows.length 
+      ? (result.rows.reduce((a,b)=>a+b.rating,0)/result.rows.length).toFixed(1) 
+      : 0;
+
     res.json({avg_rating: avg, ratings: result.rows});
   } catch(err){
     handleServerError(res, err, 'GET /ratings/product/:product_id');
   }
 });
+
 
 
 app.get('/ratings/seller/:seller_id', async(req,res)=>{
