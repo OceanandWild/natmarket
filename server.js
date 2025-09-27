@@ -257,28 +257,39 @@ app.post('/rate', async (req, res) => {
   }
 });
 
-app.post('/rate-product', async (req, res) => {
-  try {
-    const { product_id, rater_user_id, rating, comment = null } = req.body;
-    if (!product_id || !rater_user_id || !rating) 
-      return res.status(400).json({ error: 'Faltan parámetros' });
+app.post('/rate-product', async (req,res)=>{
+  try{
+    const { product_id, rater_user_id, rating, comment } = req.body;
+    if(!product_id || !rater_user_id || !rating) return res.status(400).json({error:'Faltan parámetros'});
+    
+    const product = await pool.query('SELECT user_id FROM products WHERE id=$1',[product_id]);
+    if(product.rowCount===0) return res.status(404).json({error:'Producto no encontrado'});
+    
+    await pool.query(
+      `INSERT INTO user_ratings (rated_user_id, rater_user_id, rating, comment, product_id, type)
+       VALUES ($1,$2,$3,$4,$5,'product')`,
+      [product.rows[0].user_id,rater_user_id,rating,comment,product_id]
+    );
+    
+    res.json({success:true});
+  }catch(err){handleServerError(res,err,'POST /rate-product');}
+});
 
-    // obtener el user_id del vendedor
-    const prodRes = await pool.query('SELECT user_id FROM products WHERE id=$1', [product_id]);
-    if (prodRes.rowCount === 0) return res.status(404).json({ error: 'Producto no encontrado' });
-
-    const rated_user_id = prodRes.rows[0].user_id;
+app.post('/rate-seller', async (req,res)=>{
+  try{
+    const { seller_id, rater_user_id, rating, comment } = req.body;
+    if(!seller_id || !rater_user_id || !rating) return res.status(400).json({error:'Faltan parámetros'});
 
     await pool.query(
-      'INSERT INTO user_ratings (rated_user_id, rater_user_id, rating, comment) VALUES ($1,$2,$3,$4)',
-      [rated_user_id, rater_user_id, rating, comment]
+      `INSERT INTO user_ratings (rated_user_id, rater_user_id, rating, comment, type)
+       VALUES ($1,$2,$3,$4,'seller')`,
+      [seller_id,rater_user_id,rating,comment]
     );
 
-    res.json({ success: true });
-  } catch (err) {
-    handleServerError(res, err, 'POST /rate-product');
-  }
+    res.json({success:true});
+  }catch(err){handleServerError(res,err,'POST /rate-seller');}
 });
+
 
 app.get('/ratings/:product_id', async (req,res)=>{
   try{
@@ -319,6 +330,40 @@ app.get('/user-ratings/:user_id', async (req,res)=>{
     handleServerError(res, err, 'GET /user-ratings/:user_id');
   }
 });
+
+app.get('/ratings/product/:product_id', async(req,res)=>{
+  try{
+    const { product_id } = req.params;
+    const result = await pool.query(`
+      SELECT r.*, u.username AS rater_username
+      FROM user_ratings r
+      JOIN users u ON r.rater_user_id = u.id
+      WHERE r.product_id=$1 AND r.type='product'
+      ORDER BY r.created_at DESC
+    `,[product_id]);
+
+    const avg = result.rows.length ? (result.rows.reduce((a,b)=>a+b.rating,0)/result.rows.length).toFixed(1) : 0;
+    res.json({avg_rating:avg, ratings:result.rows});
+  }catch(err){handleServerError(res,err,'GET /ratings/product/:product_id');}
+});
+
+app.get('/ratings/seller/:seller_id', async(req,res)=>{
+  try{
+    const { seller_id } = req.params;
+    const result = await pool.query(`
+      SELECT r.*, u.username AS rater_username, p.name AS product_name
+      FROM user_ratings r
+      LEFT JOIN products p ON r.product_id = p.id
+      JOIN users u ON r.rater_user_id = u.id
+      WHERE r.rated_user_id=$1 AND r.type='seller'
+      ORDER BY r.created_at DESC
+    `,[seller_id]);
+
+    const avg = result.rows.length ? (result.rows.reduce((a,b)=>a+b.rating,0)/result.rows.length).toFixed(1) : 0;
+    res.json({avg_rating:avg, ratings:result.rows});
+  }catch(err){handleServerError(res,err,'GET /ratings/seller/:seller_id');}
+});
+
 
 
 // ------------------
