@@ -215,13 +215,11 @@ app.get('/messages/:product_id', async (req, res) => {
 // ------------------
 // PRODUCTS
 // ------------------
-// subir producto con múltiples imágenes
 app.post('/products', upload.array('images', 10), async (req, res) => {
   try {
     const { user_id, name, description = null, price = null, contact_number = null } = req.body;
     if (!user_id || !name) return res.status(400).json({ error: 'user_id y name son requeridos' });
 
-    // Insertar producto primero
     const result = await pool.query(
       `INSERT INTO products (user_id, name, description, price, contact_number)
        VALUES ($1,$2,$3,$4,$5) RETURNING *`,
@@ -229,18 +227,14 @@ app.post('/products', upload.array('images', 10), async (req, res) => {
     );
     const product = result.rows[0];
 
-    // Guardar imágenes en tabla product_images
+    const host = process.env.BACKEND_URL || 'http://localhost:4000';
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const url = `/uploads/${file.filename}`;
-        await pool.query(
-          'INSERT INTO product_images (product_id, url) VALUES ($1,$2)',
-          [product.id, url]
-        );
+        const url = `${host}/uploads/${file.filename}`;
+        await pool.query('INSERT INTO product_images (product_id, url) VALUES ($1,$2)', [product.id, url]);
       }
     }
 
-    // Devolver producto con array de URLs
     const imagesRes = await pool.query('SELECT url FROM product_images WHERE product_id=$1', [product.id]);
     product.image_urls = imagesRes.rows.map(r => r.url);
 
@@ -249,6 +243,7 @@ app.post('/products', upload.array('images', 10), async (req, res) => {
     handleServerError(res, err, 'POST /products con imágenes');
   }
 });
+
 
 // Subir imágenes adicionales a un producto existente
 app.post('/products/:id/images', upload.array('images', 10), async (req, res) => {
@@ -259,9 +254,8 @@ app.post('/products/:id/images', upload.array('images', 10), async (req, res) =>
 
     if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No se subieron imágenes' });
 
-// Dentro de POST /products o POST /products/:id/images
-const host = process.env.BACKEND_URL || 'http://localhost:4000'; // poner URL real de tu backend
-const urls = req.files.map(f => `${host}/uploads/${f.filename}`);
+    const host = process.env.BACKEND_URL || 'http://localhost:4000';
+    const urls = req.files.map(f => `${host}/uploads/${f.filename}`);
 
     for (const url of urls) {
       await pool.query('INSERT INTO product_images (product_id, url) VALUES ($1,$2)', [productId, url]);
@@ -273,6 +267,7 @@ const urls = req.files.map(f => `${host}/uploads/${f.filename}`);
     handleServerError(res, err, 'POST /products/:id/images');
   }
 });
+
 
 
 // servir imágenes estáticas
