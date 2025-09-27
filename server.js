@@ -257,6 +257,47 @@ app.post('/rate', async (req, res) => {
   }
 });
 
+app.post('/rate-product', async (req, res) => {
+  try {
+    const { product_id, rater_user_id, rating, comment = null } = req.body;
+    if (!product_id || !rater_user_id || !rating) 
+      return res.status(400).json({ error: 'Faltan parámetros' });
+
+    // obtener el user_id del vendedor
+    const prodRes = await pool.query('SELECT user_id FROM products WHERE id=$1', [product_id]);
+    if (prodRes.rowCount === 0) return res.status(404).json({ error: 'Producto no encontrado' });
+
+    const rated_user_id = prodRes.rows[0].user_id;
+
+    await pool.query(
+      'INSERT INTO user_ratings (rated_user_id, rater_user_id, rating, comment) VALUES ($1,$2,$3,$4)',
+      [rated_user_id, rater_user_id, rating, comment]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    handleServerError(res, err, 'POST /rate-product');
+  }
+});
+
+app.get('/ratings/:product_id', async (req,res)=>{
+  try{
+    const { product_id } = req.params;
+    const result = await pool.query(`
+      SELECT r.*, u.username AS rater_username
+      FROM user_ratings r
+      JOIN products p ON r.rated_user_id = p.user_id
+      JOIN users u ON r.rater_user_id = u.id
+      WHERE p.id=$1
+      ORDER BY r.created_at DESC
+    `, [product_id]);
+    res.json(result.rows);
+  } catch(err){
+    handleServerError(res,err,'GET /ratings/:product_id');
+  }
+});
+
+
 // ------------------
 // INICIO SERVIDOR
 // ------------------
