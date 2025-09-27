@@ -281,18 +281,29 @@ app.delete('/products/:id', async (req, res) => {
     const { user_id } = req.body;
     if (!user_id) return res.status(400).json({ error: 'user_id requerido para verificar propiedad' });
 
+    // Buscar producto
     const found = await pool.query('SELECT id, user_id FROM products WHERE id = $1 LIMIT 1', [id]);
     if (found.rowCount === 0) return res.status(404).json({ error: 'Producto no encontrado' });
 
     const product = found.rows[0];
     if (Number(product.user_id) !== Number(user_id)) return res.status(403).json({ error: 'No autorizado' });
 
-    const deleted = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [product.id]);
+    // Eliminar imágenes asociadas primero
+    const imagesRes = await pool.query('SELECT url FROM product_images WHERE product_id=$1', [id]);
+    for (const img of imagesRes.rows) {
+      const filePath = path.join(uploadDir, path.basename(img.url));
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    await pool.query('DELETE FROM product_images WHERE product_id=$1', [id]);
+    const deleted = await pool.query('DELETE FROM products WHERE id=$1 RETURNING *', [id]);
+
     res.json({ success: true, deleted: deleted.rows[0] });
   } catch (err) {
     handleServerError(res, err, 'DELETE /products/:id');
   }
 });
+
 
 app.get('/products', async (req, res) => {
   try {
